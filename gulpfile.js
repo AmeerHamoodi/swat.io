@@ -101,7 +101,7 @@ function js() {
   .pipe(gulp.dest("./builds/developer/client/js"))
 }
 function css(param) {
-  return gulp.src("./src/client/css/*.css")
+  return gulp.src("./src/client/css/**")
     .pipe(gulp.dest("./builds/developer/client/css"))
 }
 function serverdev() {
