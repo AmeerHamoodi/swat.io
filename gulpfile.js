@@ -46,6 +46,11 @@ function watchCss() {
   gulp.watch("./src/client/css/*.css", devCss);
 }
 
+function img() {
+  return gulp.src("./src/client/img/**")
+    .pipe(gulp.dest("./devBuild/client/img"))
+}
+
 
 //Server stuff
 function server() {
@@ -124,5 +129,5 @@ function build() {
 }
 
 
-exports.default = gulp.parallel(server, wp, watchHtml, watchJs, devCss, watchCss,watchServer, pip, nm);
+exports.default = gulp.parallel(server, wp, watchHtml, watchJs, devCss, watchCss,watchServer, pip, nm, img);
 exports.build = build;
