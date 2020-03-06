@@ -36,6 +36,7 @@ class Player {
     this.y = Math.floor(Math.random() * 600) + 0;
     this.w = 50;
     this.h = 50;
+    this.r = 20;
     this.spdX = 0;
     this.spdY = 0;
     this.maxSpd = 5;
@@ -69,7 +70,8 @@ class Player {
         id: PLAYER_LIST[i].id,
         wBw: world.w,
         wBh: world.h,
-        angle: this.angle
+        angle: this.angle,
+        r: PLAYER_LIST[i].r
       });
     }
     return pkg;
@@ -153,21 +155,29 @@ class Player {
 
   }
   updateHealth() {
+    let killer = 0;
     for(let i in BULLET_LIST) {
       let b = BULLET_LIST[i];
-      if(b.parent.id !== this.id) {
+      let shooter = b.parent;
+      if(shooter.id !== this.id) {
         let dx = b.x - this.x;
   		  let dy = b.y - this.y;
-        console.log(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)));
   		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r) {
+          this.health -= shooter.gun.dmg;
           delete BULLET_LIST[i];
+          console.log("Hit " + this.health);
+          killer = {id: shooter.id, gun: shooter.gun, name: shooter.name};
         }
+      }
+      if(this.health <= 0) {
+        this.socket.emit("death", killer);
+        this.r = 0;
       }
     }
   }
   update() {
-    this.updateHealth();
     if(this.health > 0) {
+      this.updateHealth();
       this.keys();
       this.angle = Math.atan2(this.my, this.mx);
       this.x += this.spdX;
@@ -182,8 +192,8 @@ class Bullet {
     this.y = parent.y;
     this.id = id;
     this.parent = parent;
-    this.spdX = (Math.cos(parent.angle) * 50) + Math.floor(Math.random() *5) - 2;
-    this.spdY = (Math.sin(parent.angle) * 50) + Math.floor(Math.random() *5) - 2;
+    this.spdX = (Math.cos(parent.angle) * 10) + Math.floor(Math.random() *5) - 2;
+    this.spdY = (Math.sin(parent.angle) * 10) + Math.floor(Math.random() *5) - 2;
     this.active = true;
     this.timer = 0;
     this.r = 5;
@@ -261,7 +271,9 @@ function updatePack() {
       x: PLAYER_LIST[i].x,
       y: PLAYER_LIST[i].y,
       id: PLAYER_LIST[i].id,
-      angle: PLAYER_LIST[i].angle
+      angle: PLAYER_LIST[i].angle,
+      r: PLAYER_LIST[i].r,
+      active: PLAYER_LIST[i].active
     });
   }
   pkg.player = pkgp

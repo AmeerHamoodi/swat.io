@@ -23,11 +23,14 @@
         background-color: #452069
     }
 }
-
+html {
+    height: 100%;
+}
 body {
   margin: 0;
   overflow: hidden;
   font-family: main;
+  height: 100%;
 
 }
 .welcome {
@@ -86,4 +89,42 @@ body {
 
 .joinBtn:hover #arrow{
   display: inline;
+}
+#killBar {
+  position: fixed;
+  background-color: black;
+  width: 25%;
+  height: 10%;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  display: grid;
+  grid-template-columns: 90px auto;
+  grid-template-rows: 0;
+}
+.gunTypeImg {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  position: relative;
+  top: 0;
+}
+.gunTypeImg img {
+  margin-top: 0;
+  height: 100%;
+}
+.gunStats {
+  grid-row-start: 2;
+}
+.name {
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.killText {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  grid-column-start: 2;
+  display: grid;
+  grid-template-rows: 50% 50%;
 }
