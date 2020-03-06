@@ -1,6 +1,7 @@
 const express = require("express");
 const app = express();
 const server = require("http").Server(app);
+const gunList = require("./guns.config.js");
 
 server.listen(process.env.PORT || 2000);
 console.log("Server started");
@@ -15,9 +16,19 @@ app.use(express.json());
 const io = require("socket.io")(server);
 
 let PLAYER_LIST = {};
+let BULLET_LIST = {};
+
+class World {
+  constructor(w, h) {
+    this.w = w;
+    this.h = h;
+  }
+}
+
+const world = new World(1800, 1800);
 
 class Player {
-  constructor(name, socket) {
+  constructor(name, socket, gun) {
     this.name = name;
     this.socket = socket;
     this.id = socket.id;
@@ -37,6 +48,14 @@ class Player {
     this.acc = this.force / this.mass;
     this.movingY = false;
     this.movingX = false;
+    this.angle = Math.atan2(this.my, this.mx);
+    this.mx = 0;
+    this.my = 0;
+    this.shooting = false;
+    this.health = 100;
+    this.nextshotin = 0;
+    this.fireRate = gun.fireRate;
+    this.gun = gun;
   }
   initPack() {
     let pkg = [];
@@ -47,7 +66,10 @@ class Player {
         w: PLAYER_LIST[i].w,
         h: PLAYER_LIST[i].h,
         name: PLAYER_LIST[i].name,
-        id: PLAYER_LIST[i].id
+        id: PLAYER_LIST[i].id,
+        wBw: world.w,
+        wBh: world.h,
+        angle: this.angle
       });
     }
     return pkg;
@@ -121,23 +143,87 @@ class Player {
         }
       }
     }
+    if(this.shooting && this.nextshotin === 0) {
+      let id = Math.random();
+      BULLET_LIST[id] = new Bullet(this, this.x, this.y, id);
+      this.nextshotin = this.fireRate;
+    } else if(this.nextshotin > 0) {
+      this.nextshotin -= 1;
+    }
 
   }
+  updateHealth() {
+    for(let i in BULLET_LIST) {
+      let b = BULLET_LIST[i];
+      if(b.parent.id !== this.id) {
+        let dx = b.x - this.x;
+  		  let dy = b.y - this.y;
+        console.log(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)));
+  		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r) {
+          delete BULLET_LIST[i];
+        }
+      }
+    }
+  }
   update() {
-    this.keys();
-    this.x += this.spdX;
-    this.y += this.spdY;
+    this.updateHealth();
+    if(this.health > 0) {
+      this.keys();
+      this.angle = Math.atan2(this.my, this.mx);
+      this.x += this.spdX;
+      this.y += this.spdY;
+    }
   }
 }
 
+class Bullet {
+  constructor(parent, x, y, id) {
+    this.x = parent.x;
+    this.y = parent.y;
+    this.id = id;
+    this.parent = parent;
+    this.spdX = (Math.cos(parent.angle) * 50) + Math.floor(Math.random() *5) - 2;
+    this.spdY = (Math.sin(parent.angle) * 50) + Math.floor(Math.random() *5) - 2;
+    this.active = true;
+    this.timer = 0;
+    this.r = 5;
+  }
+  update() {
+    this.x += this.spdX;
+    this.y += this.spdY;
+  }
+  initPack() {
+    bInit.push({x: this.x, y: this.y, id: this.id});
+  }
+  timerUpdate() {
+    this.timer++;
+    if(this.timer >= 300) {
+      this.active = false;
+    }
+    if(!this.active) {
+      delete BULLET_LIST[this.id];
+    }
+  }
+  updatePack() {
+    return {
+      x: this.x,
+      y: this.y,
+      id: this.id,
+    }
+  }
+}
+let bInit = [];
 io.on("connection", (socket) => {
   let selfId = Math.random();
   socket.id = selfId;
 
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
-    PLAYER_LIST[selfId] = new Player(data.name, socket);
-    socket.emit("initPack", PLAYER_LIST[selfId].initPack());
+    PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000);
+    socket.emit("initPack", {
+      player: PLAYER_LIST[selfId].initPack(),
+      bullet: bInit
+    });
   });
 
   socket.on("keypress", (data) => {
@@ -146,6 +232,9 @@ io.on("connection", (socket) => {
     p.down = data.down;
     p.right = data.right;
     p.left = data.left;
+    p.mx = data.mx;
+    p.my = data.my;
+    p.shooting = data.mousePress;
   });
 
   socket.emit("id", selfId);
@@ -156,16 +245,35 @@ io.on("connection", (socket) => {
   })
 });
 
+setInterval(() => {
+  for(let i in BULLET_LIST) {
+    BULLET_LIST[i].timerUpdate()
+  }
+}, 1E3 / 60);
+
 function updatePack() {
-  let pkg = [];
+  let pkg = {};
+  let pkgp = [];
+  let pkgb = [];
   for(let i in PLAYER_LIST) {
     PLAYER_LIST[i].update();
-    pkg.push({
+    pkgp.push({
       x: PLAYER_LIST[i].x,
       y: PLAYER_LIST[i].y,
-      id: PLAYER_LIST[i].id
+      id: PLAYER_LIST[i].id,
+      angle: PLAYER_LIST[i].angle
     });
   }
+  pkg.player = pkgp
+  for(let i in BULLET_LIST) {
+    BULLET_LIST[i].update();
+    pkgb.push({
+      y: BULLET_LIST[i].y,
+      x: BULLET_LIST[i].x,
+      id: bInit
+    })
+  }
+  pkg.bullet = pkgb;
   io.emit("updatePack", pkg);
 }
 
