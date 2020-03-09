@@ -44,7 +44,7 @@ class Player {
     this.down = false;
     this.right = false;
     this.left = false;
-    this.mass = 60;
+    this.mass = 60 + gun.mass;
     this.force = 6;
     this.acc = this.force / this.mass;
     this.movingY = false;
@@ -57,6 +57,11 @@ class Player {
     this.nextshotin = 0;
     this.fireRate = gun.fireRate;
     this.gun = gun;
+    this.weapon = this.gun;
+    this.crouching = false;
+    this.toSwitch = false;
+    this.knife = {type: "meele", dmg: 50, rate: 20};
+    this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2
   }
   initPack() {
     let pkg = [];
@@ -71,12 +76,18 @@ class Player {
         wBw: world.w,
         wBh: world.h,
         angle: this.angle,
-        r: PLAYER_LIST[i].r
+        r: PLAYER_LIST[i].r,
+        acc: PLAYER_LIST[i].accuracy
       });
     }
     return pkg;
   }
   keys() {
+    if(this.toSwitch) {
+      this.weapon = this.knife;
+    } else {
+      this.weapon = this.gun;
+    }
     if(this.up) {
       this.movingY = true;
       if(this.spdY < -this.maxSpd) {
@@ -109,6 +120,22 @@ class Player {
           }
         }
       }
+    }
+
+    if(this.crouching) {
+      this.r = 15;
+      this.gun.accuracy[0] = 0;
+      this.gun.accuracy[1] = 0;
+      this.force = 4;
+
+      this.acc = this.force / this.mass;
+    } else if (this.r !== 0){
+      this.r = 20;
+      this.gun.accuracy[0] = 5;
+      this.gun.accuracy[1] = -2;
+      this.force = 4;
+
+      this.acc = this.force / this.mass;
     }
 
     if(this.right) {
@@ -145,7 +172,7 @@ class Player {
         }
       }
     }
-    if(this.shooting && this.nextshotin === 0) {
+    if(this.shooting && this.nextshotin === 0 && this.weapon == this.gun) {
       let id = Math.random();
       BULLET_LIST[id] = new Bullet(this, this.x, this.y, id);
       this.nextshotin = this.fireRate;
@@ -192,8 +219,8 @@ class Bullet {
     this.y = parent.y;
     this.id = id;
     this.parent = parent;
-    this.spdX = (Math.cos(parent.angle) * 10) + Math.floor(Math.random() *5) - 2;
-    this.spdY = (Math.sin(parent.angle) * 10) + Math.floor(Math.random() *5) - 2;
+    this.spdX = (Math.cos(parent.angle) * 10) + (Math.floor(Math.random() * parent.gun.accuracy[0]) + parent.gun.accuracy[1]) + parent.spdX / 4;
+    this.spdY = (Math.sin(parent.angle) * 10) + (Math.floor(Math.random() * parent.gun.accuracy[0]) + parent.gun.accuracy[1]) + parent.spdY / 4;
     this.active = true;
     this.timer = 0;
     this.r = 5;
@@ -222,6 +249,7 @@ class Bullet {
     }
   }
 }
+
 let bInit = [];
 io.on("connection", (socket) => {
   let selfId = Math.random();
@@ -230,8 +258,9 @@ io.on("connection", (socket) => {
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
     PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000);
+    let ip = PLAYER_LIST[selfId].initPack();
     socket.emit("initPack", {
-      player: PLAYER_LIST[selfId].initPack(),
+      player: ip,
       bullet: bInit
     });
   });
@@ -245,6 +274,8 @@ io.on("connection", (socket) => {
     p.mx = data.mx;
     p.my = data.my;
     p.shooting = data.mousePress;
+    p.crouching = data.shift;
+    p.toSwitch = data.swtich;
   });
 
   socket.emit("id", selfId);
@@ -273,7 +304,10 @@ function updatePack() {
       id: PLAYER_LIST[i].id,
       angle: PLAYER_LIST[i].angle,
       r: PLAYER_LIST[i].r,
-      active: PLAYER_LIST[i].active
+      active: PLAYER_LIST[i].active,
+      name: PLAYER_LIST[i].name,
+      state: PLAYER_LIST[i].weapon.type,
+      acc: PLAYER_LIST[i].accuracy
     });
   }
   pkg.player = pkgp
