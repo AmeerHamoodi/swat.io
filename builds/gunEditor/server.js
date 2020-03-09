@@ -1,5 +1,4 @@
 const server = require("../server.js");
-const gunList = require("./guns.config.js");
 
 
 const io = require("socket.io")(server);
@@ -17,8 +16,8 @@ class World {
 const world = new World(1800, 1800);
 
 class Player {
-  constructor(name, socket, gun) {
-    this.name = name;
+  constructor(socket) {
+    this.name = "Testing weapon";
     this.socket = socket;
     this.id = socket.id;
     this.x = Math.floor(Math.random() * 600) + 0;
@@ -26,6 +25,15 @@ class Player {
     this.w = 50;
     this.h = 50;
     this.r = 20;
+    this.gun = {
+      name: "New gun",
+      price: 0,
+      dmg: 0,
+      fireRate: 0,
+      accuracy: [0, 0],
+      mass: 0,
+      type: "gun"
+    };
     this.spdX = 0;
     this.spdY = 0;
     this.maxSpd = 5;
@@ -33,7 +41,7 @@ class Player {
     this.down = false;
     this.right = false;
     this.left = false;
-    this.mass = 60 + gun.mass;
+    this.mass = 60 + this.gun.mass;
     this.force = 6;
     this.acc = this.force / this.mass;
     this.movingY = false;
@@ -44,9 +52,7 @@ class Player {
     this.shooting = false;
     this.health = 100;
     this.nextshotin = 0;
-    this.fireRate = gun.fireRate;
-    this.gun = gun;
-    this.weapon = this.gun;
+    this.fireRate = this.gun.fireRate;
     this.crouching = false;
     this.toSwitch = false;
     this.knife = {type: "meele", dmg: 50, rate: 20};
@@ -72,11 +78,6 @@ class Player {
     return pkg;
   }
   keys() {
-    if(this.toSwitch) {
-      this.weapon = this.knife;
-    } else {
-      this.weapon = this.gun;
-    }
     if(this.up) {
       this.movingY = true;
       if(this.spdY < -this.maxSpd) {
@@ -113,15 +114,11 @@ class Player {
 
     if(this.crouching) {
       this.r = 15;
-      this.gun.accuracy[0] = 0;
-      this.gun.accuracy[1] = 0;
       this.force = 4;
 
       this.acc = this.force / this.mass;
     } else if (this.r !== 0){
       this.r = 20;
-      this.gun.accuracy[0] = 5;
-      this.gun.accuracy[1] = -2;
       this.force = 4;
 
       this.acc = this.force / this.mass;
@@ -161,7 +158,7 @@ class Player {
         }
       }
     }
-    if(this.shooting && this.nextshotin === 0 && this.weapon == this.gun) {
+    if(this.shooting && this.nextshotin === 0) {
       let id = Math.random();
       BULLET_LIST[id] = new Bullet(this, this.x, this.y, id);
       this.nextshotin = this.fireRate;
@@ -243,16 +240,14 @@ let bInit = [];
 io.on("connection", (socket) => {
   let selfId = Math.random();
   socket.id = selfId;
+  PLAYER_LIST[selfId] = new Player(socket);
+  let ip = PLAYER_LIST[selfId].initPack();
+  socket.emit("initPack", {
+    player: ip,
+    bullet: bInit
+  });
 
   console.log("[SERVER]: socket connected");
-  socket.on("init", (data) => {
-    PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000);
-    let ip = PLAYER_LIST[selfId].initPack();
-    socket.emit("initPack", {
-      player: ip,
-      bullet: bInit
-    });
-  });
 
   socket.on("keypress", (data) => {
     let p = PLAYER_LIST[selfId];
@@ -266,6 +261,11 @@ io.on("connection", (socket) => {
     p.crouching = data.shift;
     p.toSwitch = data.swtich;
   });
+  socket.on("updateGunParam", (data) => {
+    let p = PLAYER_LIST[selfId]
+    p.gun = data;
+    p.fireRate = data.fireRate;
+  })
 
   socket.emit("id", selfId);
 
@@ -295,7 +295,7 @@ function updatePack() {
       r: PLAYER_LIST[i].r,
       active: PLAYER_LIST[i].active,
       name: PLAYER_LIST[i].name,
-      state: PLAYER_LIST[i].weapon.type,
+      state: PLAYER_LIST[i].gun.type,
       acc: PLAYER_LIST[i].accuracy
     });
   }

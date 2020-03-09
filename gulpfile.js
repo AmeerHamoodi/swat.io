@@ -4,6 +4,7 @@ const nodemon = require("nodemon");
 const prompt = require("prompt");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+
 function randomString(length, chars) {
     let result = '';
     for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
@@ -124,6 +125,8 @@ function build() {
       js();
       css();
       serverdev();
+      gunEditor("builds/developer");
+
     }
   });
 }
@@ -195,15 +198,16 @@ function editorBuild() {
 
 
 //gun editor/veiwer build
-function watchHtml() {
-  gulp.watch("./src/gunEditor/client/*.html", wp);
+
+function watchHtmlg() {
+  gulp.watch("./src/gunEditor/client/*.html", wpg);
 }
 
-function wp() {
+function wpg(type) {
   webpack({
     entry: "./src/gunEditor/client/js/main.js",
     output: {
-      path: __dirname + "./devBuild/gunEditor/client/js",
+      path: __dirname + "./"+type+"/gunEditor/client/js",
       filename: "bundle.js"
     },
     module: {
@@ -225,55 +229,63 @@ function wp() {
           new HtmlWebpackPlugin({
               title: "Developer version" ,
               template: __dirname + "/src/gunEditor/client/index.html",
-              filename: __dirname + './devBuild/gunEditor/client/index.html'
+              filename: __dirname + './'+type+'/gunEditor/client/index.html'
           })
      ]
   })
-  .pipe(gulp.dest("./devBuild/gunEditor/client/js"))
+  .pipe(gulp.dest("./"+type+"/gunEditor/client/js"))
 }
 
-function pip() {
-  return gulp.src("./devBuild/gunEditor/client/*.html")
-    .pipe(gulp.dest("./devBuild/gunEditor/client/"))
+function pipg(type) {
+  return gulp.src("./"+type+"/gunEditor/client/*.html")
+    .pipe(gulp.dest("./"+type+"/gunEditor/client/"))
 }
 
-function watchJs() {
-  gulp.watch("./src/gunEditor/client/js/**", wp);
+function watchJsg() {
+  gulp.watch("./src/gunEditor/client/js/**", wpg);
 }
 
-function devCss() {
+function devCssg(type) {
   return gulp.src("./src/gunEditor/client/css/*")
-    .pipe(gulp.dest("./devBuild/gunEditor/client/css"))
+    .pipe(gulp.dest("./"+type+"/gunEditor/client/css"))
 }
 
-function watchCss() {
-  gulp.watch("./src/gunEditor/client/css/*.css", devCss);
+function watchCssg() {
+  gulp.watch("./src/gunEditor/client/css/*.css", devCssg);
 }
-function server() {
+function serverg(type) {
   return gulp.src("./src/gunEditor/*.js")
-  .pipe(gulp.dest("./devBuild/gunEditor/"))
+  .pipe(gulp.dest("./"+type+"/gunEditor/"))
 }
-function watchServer() {
+function watchServerg() {
   gulp.watch("./src/gunEditor/*.js", gulp.parallel(server, nm));
 }
 
-function nm() {
+function nmg() {
   nodemon({
     script: './devBuild/gunEditor/server.js'
     , ext: 'js html'
     , env: { 'NODE_ENV': 'development' }
   })
 }
-function gunEditor() {
-  watchHtml()
-  wp()
-  pip()
-  watchJs()
-  devCss()
-  watchCss()
-  server()
-  watchServer()
-  nm()
+function gunEditor(type) {
+  if(type == "developer") {
+    wpg("developer")
+    pipg("developer")
+    devCssg("developer")
+    serverg("developer");
+  } else {
+    watchHtmlg()
+    wpg("devBuild")
+    pipg("devBuild")
+    watchJsg()
+    devCssg("devBuild")
+    watchCssg()
+    serverg("devBuild")
+    watchServerg()
+    nmg()
+  }
+
 }
 exports.default = gulp.parallel(server, wp, watchHtml, watchJs, devCss, watchCss,watchServer, pip, nm, img);
 exports.build = build;

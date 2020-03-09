@@ -1,0 +1,134 @@
+@font-face {
+  font-family: main;
+  src: url("./regular1.otf");
+}
+@keyframes bgcolor {
+    0% {
+        background-color: #b381f0
+    }
+
+    30% {
+        background-color: #9160cc
+    }
+
+    60% {
+        background-color: #7945ad
+    }
+
+    90% {
+        background-color: #61358c
+    }
+
+    100% {
+        background-color: #452069
+    }
+}
+html {
+    height: 100%;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: main;
+  height: 100%;
+}
+.welcome {
+  animation: bgcolor 10s alternate infinite;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+#game {
+  display: none;
+  width: 100%;
+  height: 100vh;
+  background-color: white;
+}
+.welcomeScreen {
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 30%;
+  font-size: 4em;
+  color: white;
+}
+.welcomeScreen span {
+  color: #d447ed;
+}
+#name {
+  width: 25vw;
+  height: 6vh;
+  font-family: main;
+  border-radius: 5px;
+  background-color: white;
+  color: #969696;
+  border: none;
+  padding: 2px 4px;
+  font-size: 20px;
+  outline: none;
+}
+.joinBtn {
+  background-color:#de6690;
+  height: 7vh;
+  width: 16vh;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  font-size: 20px;
+  font-family: main;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: pre;
+  outline: none;
+}
+
+#arrow {
+  display: none;
+  color: white;
+}
+
+.joinBtn:hover #arrow{
+  display: inline;
+}
+#killBar {
+  position: fixed;
+  background-color: black;
+  width: 25%;
+  height: 10%;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  display: grid;
+  grid-template-columns: 90px auto;
+  grid-template-rows: 0;
+}
+.gunTypeImg {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  position: relative;
+  top: 0;
+}
+.gunTypeImg img {
+  margin-top: 0;
+  height: 100%;
+}
+.gunStats {
+  grid-row-start: 2;
+}
+.name {
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.killText {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  grid-column-start: 2;
+  display: grid;
+  grid-template-rows: 50% 50%;
+}
