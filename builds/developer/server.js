@@ -1,6 +1,13 @@
-const server = require("../server.js");
+const express = require("express");
+const app = express();
+const server = require("http").Server(app);
 const gunList = require("./guns.config.js");
 
+server.listen(process.env.PORT || 2000);
+
+app.use(express.static(__dirname + "/client", {
+  extensions: ['html', 'htm']
+}));
 
 const io = require("socket.io")(server);
 

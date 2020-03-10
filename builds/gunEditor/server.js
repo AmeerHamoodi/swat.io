@@ -1,5 +1,16 @@
-const server = require("../server.js");
+const express = require("express");
+const app = express();
+const server = require("http").Server(app);
 
+server.listen(process.env.PORT || 2000);
+console.log("Server started");
+
+//headers
+app.use(express.static(__dirname + "/client", {
+  extensions: ['html', 'htm']
+}));
+
+app.use(express.json());
 
 const io = require("socket.io")(server);
 
