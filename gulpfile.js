@@ -60,7 +60,10 @@ function server() {
   return gulp.src("./src/*.js")
   .pipe(gulp.dest("./devBuild/"))
 }
-
+function imgb() {
+  return gulp.src("./src/client/img/**")
+    .pipe(gulp.dest("./builds/developer/client/img"))
+}
 function watchServer() {
   gulp.watch("./src/*.js", gulp.parallel(server, nm));
 }
@@ -115,10 +118,12 @@ function csss(param) {
 function serverdev() {
   return gulp.src("./src/*.js")
     .pipe(gulp.dest("./builds/developer/"))
+  gulp.src("./src/*.json")
+    .pipe(gulp.dest("./builds/developer/"));
 }
 function getEd() {
   return gulp.src("./devBuild/editor/**")
-    .pipe(gulp.dest("./builds/developer/client/"))
+    .pipe(gulp.dest("./builds/developer/client/editor/"))
 }
 function build() {
   prompt.start();
@@ -133,6 +138,7 @@ function build() {
       serverdev();
       gunEditor("builds/developer");
       getEd();
+      imgb();
 
     }
   });
