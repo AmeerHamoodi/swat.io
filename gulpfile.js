@@ -55,6 +55,8 @@ function img() {
 
 //Server stuff
 function server() {
+  gulp.src("./src/*.json")
+    .pipe(gulp.dest("./devBuild/"))
   return gulp.src("./src/*.js")
   .pipe(gulp.dest("./devBuild/"))
 }
@@ -106,13 +108,17 @@ function js() {
   webpack(wp)
   .pipe(gulp.dest("./builds/developer/client/js"))
 }
-function css(param) {
+function csss(param) {
   return gulp.src("./src/client/css/**")
     .pipe(gulp.dest("./builds/developer/client/css"))
 }
 function serverdev() {
   return gulp.src("./src/*.js")
     .pipe(gulp.dest("./builds/developer/"))
+}
+function getEd() {
+  return gulp.src("./devBuild/editor/**")
+    .pipe(gulp.dest("./builds/developer/client/"))
 }
 function build() {
   prompt.start();
@@ -123,9 +129,10 @@ function build() {
       let rString = randomString(4, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ');
       let pm = {vers:rString};
       js();
-      css();
+      csss();
       serverdev();
       gunEditor("builds/developer");
+      getEd();
 
     }
   });
@@ -136,7 +143,12 @@ function watchHtml() {
   gulp.watch("./src/editor/*.html", wp);
 }
 
-function wp() {
+function assets() {
+  return gulp.src("./src/editor/assets/**")
+    .pipe(gulp.dest("./devBuild/editor/assets"))
+}
+
+function wp2() {
   webpack({
     entry: "./src/editor/js/main.js",
     output: {
@@ -174,7 +186,7 @@ function pip() {
     .pipe(gulp.dest("./devBuild/editor/"))
 }
 
-function watchJs() {
+function watchJss() {
   gulp.watch("./src/editor/js/**", wp);
 }
 
@@ -188,12 +200,13 @@ function watchCss() {
 }
 
 function editorBuild() {
-  wp()
+  wp2()
   watchHtml()
-  watchJs()
+  watchJss()
   devCss()
   watchCss()
   pip()
+  assets();
 }
 
 

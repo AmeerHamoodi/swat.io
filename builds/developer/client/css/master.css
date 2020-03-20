@@ -31,10 +31,14 @@ body {
   overflow: hidden;
   font-family: main;
   height: 100%;
-
 }
 .welcome {
   animation: bgcolor 10s alternate infinite;
+}
+canvas {
+  width: 100%;
+  height: 100%;
+  margin: 0;
 }
 #game {
   display: none;
@@ -127,4 +131,9 @@ body {
   grid-column-start: 2;
   display: grid;
   grid-template-rows: 50% 50%;
+}
+#goback {
+  position: absolute;
+  top: 0;
+  left: 0;
 }

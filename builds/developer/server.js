@@ -3,16 +3,41 @@ const app = express();
 const server = require("http").Server(app);
 const gunList = require("./guns.config.js");
 
-server.listen(process.env.PORT || 2000);
+const fs = require('fs');
+const map = JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'));
 
+server.listen(process.env.PORT || 2000);
+console.log("Server started");
+
+//headers
 app.use(express.static(__dirname + "/client", {
   extensions: ['html', 'htm']
 }));
 
+app.use(express.json());
+
 const io = require("socket.io")(server);
+
+let count = 0;
 
 let PLAYER_LIST = {};
 let BULLET_LIST = {};
+
+
+function RectCircleColliding(circle,rect){
+    var distX = Math.abs(circle.x - rect.x-rect.w/2);
+    var distY = Math.abs(circle.y - rect.y-rect.h/2);
+
+    if (distX > (rect.w/2 + circle.r)) { return false; }
+    if (distY > (rect.h/2 + circle.r)) { return false; }
+
+    if (distX <= (rect.w/2)) { return true; }
+    if (distY <= (rect.h/2)) { return true; }
+
+    var dx=distX-rect.w/2;
+    var dy=distY-rect.h/2;
+    return (dx*dx+dy*dy<=(circle.r*circle.r));
+}
 
 class World {
   constructor(w, h) {
@@ -23,11 +48,36 @@ class World {
 
 const world = new World(1800, 1800);
 
+class Game {
+  constructor(mode) {
+    this.mode = mode;
+    this.players = [];
+    this.lb = [];
+    this.timer = 3E5;
+    this.int = 0;
+    this.state = 0;
+  }
+  startTimer() {
+    this.int = setInterval(() => {
+      this.timer -= 1000;
+    }, 1000);
+  }
+  start() {
+    if(this.state == 1) {
+      this.state = 2;
+      setTimeout(() => {
+        this.startTimer();
+      }, 15000);
+    }
+  }
+}
+
 class Player {
-  constructor(name, socket, gun) {
+  constructor(name, socket, gun, team) {
     this.name = name;
     this.socket = socket;
     this.id = socket.id;
+    this.team = team;
     this.x = Math.floor(Math.random() * 600) + 0;
     this.y = Math.floor(Math.random() * 600) + 0;
     this.w = 50;
@@ -35,7 +85,7 @@ class Player {
     this.r = 20;
     this.spdX = 0;
     this.spdY = 0;
-    this.maxSpd = 5;
+    this.maxSpd = 3;
     this.up = false;
     this.down = false;
     this.right = false;
@@ -55,9 +105,8 @@ class Player {
     this.gun = gun;
     this.weapon = this.gun;
     this.crouching = false;
-    this.toSwitch = false;
     this.knife = {type: "meele", dmg: 50, rate: 20};
-    this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2
+    this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
   }
   initPack() {
     let pkg = [];
@@ -79,11 +128,6 @@ class Player {
     return pkg;
   }
   keys() {
-    if(this.toSwitch) {
-      this.weapon = this.knife;
-    } else {
-      this.weapon = this.gun;
-    }
     if(this.up) {
       this.movingY = true;
       if(this.spdY < -this.maxSpd) {
@@ -177,6 +221,16 @@ class Player {
     }
 
   }
+  updateMap(oldPos){
+    for(let i = 0; i < map.objects.length; i++) {
+      let b = map.objects[i];
+      let coll = RectCircleColliding(this, b);
+      if(coll) {
+        this.x = oldPos[0];
+        this.y = oldPos[1];
+      }
+    }
+  }
   updateHealth() {
     let killer = 0;
     for(let i in BULLET_LIST) {
@@ -200,19 +254,22 @@ class Player {
   }
   update() {
     if(this.health > 0) {
+      let oldPos = [this.x, this.y];
       this.updateHealth();
       this.keys();
       this.angle = Math.atan2(this.my, this.mx);
       this.x += this.spdX;
       this.y += this.spdY;
+      this.updateMap(oldPos);
     }
   }
 }
 
 class Bullet {
   constructor(parent, x, y, id) {
-    this.x = parent.x;
-    this.y = parent.y;
+    this.calc = 80;
+    this.x = parent.x + this.calc * Math.cos(parent.angle);
+    this.y = parent.y + this.calc * Math.sin(parent.angle);
     this.id = id;
     this.parent = parent;
     this.spdX = (Math.cos(parent.angle) * 10) + (Math.floor(Math.random() * parent.gun.accuracy[0]) + parent.gun.accuracy[1]) + parent.spdX / 4;
@@ -247,17 +304,25 @@ class Bullet {
 }
 
 let bInit = [];
+let game = new Game("defuse");
 io.on("connection", (socket) => {
   let selfId = Math.random();
   socket.id = selfId;
 
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
-    PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000);
+    if(count % 2 === 0) {
+      PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000, 0);
+      game.players.push(PLAYER_LIST[selfId]);
+    } else {
+      PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000, 1);
+      game.players.push(PLAYER_LIST[selfId]);
+    }
     let ip = PLAYER_LIST[selfId].initPack();
     socket.emit("initPack", {
       player: ip,
-      bullet: bInit
+      bullet: bInit,
+      map: map
     });
   });
 
@@ -271,7 +336,9 @@ io.on("connection", (socket) => {
     p.my = data.my;
     p.shooting = data.mousePress;
     p.crouching = data.shift;
-    p.toSwitch = data.swtich;
+    if(p.weapon == p.gun && data.switch) {
+      p.weapon = p.knife;
+    }
   });
 
   socket.emit("id", selfId);
@@ -292,6 +359,10 @@ function updatePack() {
   let pkg = {};
   let pkgp = [];
   let pkgb = [];
+  let game = 0;
+  if(game.state == 0) {
+    game = "Waiting for players...";
+  }
   for(let i in PLAYER_LIST) {
     PLAYER_LIST[i].update();
     pkgp.push({
@@ -312,11 +383,13 @@ function updatePack() {
     pkgb.push({
       y: BULLET_LIST[i].y,
       x: BULLET_LIST[i].x,
-      id: bInit
+      id: bInit,
+      game: game
     })
   }
   pkg.bullet = pkgb;
   io.emit("updatePack", pkg);
+
 }
 
 setInterval(updatePack, 1E3 / 60);
