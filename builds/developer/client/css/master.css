@@ -2,27 +2,6 @@
   font-family: main;
   src: url("./regular1.otf");
 }
-@keyframes bgcolor {
-    0% {
-        background-color: #b381f0
-    }
-
-    30% {
-        background-color: #9160cc
-    }
-
-    60% {
-        background-color: #7945ad
-    }
-
-    90% {
-        background-color: #61358c
-    }
-
-    100% {
-        background-color: #452069
-    }
-}
 html {
     height: 100%;
 }
@@ -34,7 +13,7 @@ body {
 
 }
 .welcome {
-  animation: bgcolor 10s alternate infinite;
+  background-color: #525556;
 }
 #game {
   display: none;
@@ -52,7 +31,7 @@ body {
   color: white;
 }
 .welcomeScreen span {
-  color: #d447ed;
+  color: #1A1F38;
 }
 #name {
   width: 25vw;
@@ -67,7 +46,7 @@ body {
   outline: none;
 }
 .joinBtn {
-  background-color:#de6690;
+  background-color:#004C99;
   height: 7vh;
   width: 16vh;
   border-radius: 10px;
@@ -132,4 +111,44 @@ body {
   position: fixed;
   left: 80%;
   top: 5%;
+}
+.chooseLoadout {
+  position: absolute;
+  right: 5%;
+  top: 5%;
+  background-color: rgba(0, 0, 0, 0.5);
+  width: 20%;
+  height: 60%;
+}
+.primarys {
+  border-bottom: 1px solid #4FA4EA;
+}
+.weapon {
+  color: white;
+  text-align: center;
+  padding-bottom: 5%;
+  border-bottom: 1px solid black;
+  cursor: pointer;
+}
+.weapon:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.primarys .weaponImg {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5%;
+  width: 50%;
+  display: block;
+}
+
+.secondaries .weaponImg {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5%;
+  width: 30%;
+  display: block;
+}
+.tag {
+  text-align: center;
+  color: white;
 }

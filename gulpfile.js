@@ -193,15 +193,15 @@ function pip() {
 }
 
 function watchJss() {
-  gulp.watch("./src/editor/js/**", wp);
+  gulp.watch("./src/editor/js/**", wp2);
 }
 
-function devCss() {
+function edevCss() {
   return gulp.src("./src/editor/css/*")
     .pipe(gulp.dest("./devBuild/editor/css"))
 }
 
-function watchCss() {
+function ewatchCss() {
   gulp.watch("./src/editor/css/*.css", devCss);
 }
 
@@ -209,8 +209,8 @@ function editorBuild() {
   wp2()
   watchHtml()
   watchJss()
-  devCss()
-  watchCss()
+  edevCss()
+  ewatchCss()
   pip()
   assets();
 }

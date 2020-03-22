@@ -4,7 +4,7 @@ const server = require("http").Server(app);
 const gunList = require("./guns.config.js");
 
 const fs = require('fs');
-const map = JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'));
+const maps = [JSON.parse(fs.readFileSync(__dirname + '/Lol.json', 'utf-8')), JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'))]
 
 server.listen(process.env.PORT || 2000);
 console.log("Server started");
@@ -56,24 +56,47 @@ class Game {
     this.timer = 3E5;
     this.int = 0;
     this.state = 0;
+    this.reqAmount = 4;
+    this.mapIndex = 0;
+  }
+  addPlayer(player) {
+    this.players.push(player);
   }
   startTimer() {
+    this.state = 2;
     this.int = setInterval(() => {
       this.timer -= 1000;
     }, 1000);
   }
   start() {
-    if(this.state == 1) {
-      this.state = 2;
+    if(this.state == 0) {
+      this.state = 1;
       setTimeout(() => {
         this.startTimer();
+        this.mapIndex = 1;
+        console.log("Map changed, GAME ON");
       }, 15000);
     }
+  }
+  check() {
+    if(this.state == 0 && this.players.length >= this.reqAmount) {
+      this.start();
+      console.log("State change: 1");
+    }
+    if(this.timer == 0) {
+      this.reset();
+    }
+  }
+  reset() {
+    this.state = 0;
+    this.timer = 3E5;
+    this.mapIndex = 0;
+    this.players = [];
   }
 }
 
 class Player {
-  constructor(name, socket, gun, team) {
+  constructor(name, socket, guns, team) {
     this.name = name;
     this.socket = socket;
     this.id = socket.id;
@@ -90,7 +113,7 @@ class Player {
     this.down = false;
     this.right = false;
     this.left = false;
-    this.mass = 60 + gun.mass;
+    this.mass = 60 + guns[0].mass;
     this.force = 6;
     this.acc = this.force / this.mass;
     this.movingY = false;
@@ -98,14 +121,16 @@ class Player {
     this.angle = Math.atan2(this.my, this.mx);
     this.mx = 0;
     this.my = 0;
+    this.canSwitch = true;
     this.shooting = false;
     this.health = 100;
     this.nextshotin = 0;
-    this.fireRate = gun.fireRate;
-    this.gun = gun;
+    this.fireRate = guns[0].fireRate;
+    this.gun = guns[0];
     this.weapon = this.gun;
     this.crouching = false;
     this.knife = {type: "meele", dmg: 50, rate: 20};
+    this.sec = guns[1];
     this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
   }
   initPack() {
@@ -122,10 +147,29 @@ class Player {
         wBh: world.h,
         angle: this.angle,
         r: PLAYER_LIST[i].r,
-        acc: PLAYER_LIST[i].accuracy
+        acc: PLAYER_LIST[i].accuracy,
+        gun: PLAYER_LIST[i].weapon
       });
     }
     return pkg;
+  }
+  switch() {
+    if(this.canSwitch) {
+      this.canSwitch = false;
+      if(this.weapon == this.gun) {
+        this.weapon = this.sec;
+        this.fireRate = this.sec.fireRate;
+        this.accuracy = (this.sec.accuracy[0] + this.sec.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
+      } else if(this.weapon == this.sec) {
+        this.weapon = this.gun;
+        this.fireRate = this.gun.fireRate;
+        this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
+      }
+      setTimeout(() => {
+        this.canSwitch = true;
+      }, 500);
+    }
+
   }
   keys() {
     if(this.up) {
@@ -212,16 +256,24 @@ class Player {
         }
       }
     }
-    if(this.shooting && this.nextshotin === 0 && this.weapon == this.gun) {
+    if(this.shooting && this.nextshotin === 0) {
       let id = Math.random();
       BULLET_LIST[id] = new Bullet(this, this.x, this.y, id);
       this.nextshotin = this.fireRate;
-    } else if(this.nextshotin > 0) {
+    } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
       this.nextshotin -= 1;
     }
+    if(typeof this.fireRate == "string" && this.weapon.canShoot > 0) {
+      this.weapon.canShoot -= 1;
+    }
 
+    if(!this.shooting && typeof this.fireRate == "string" && this.weapon.canShoot == 0) {
+        this.nextshotin = 0;
+        this.weapon.canShoot = this.weapon.canMax;
+    }
   }
   updateMap(oldPos){
+    let map = maps[game.mapIndex];
     for(let i = 0; i < map.objects.length; i++) {
       let b = map.objects[i];
       let coll = RectCircleColliding(this, b);
@@ -304,7 +356,7 @@ class Bullet {
 }
 
 let bInit = [];
-let game = new Game("defuse");
+let game = new Game("siege");
 io.on("connection", (socket) => {
   let selfId = Math.random();
   socket.id = selfId;
@@ -312,17 +364,17 @@ io.on("connection", (socket) => {
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
     if(count % 2 === 0) {
-      PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000, 0);
-      game.players.push(PLAYER_LIST[selfId]);
+      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.ak47, gunList.p2000], 0);
+      game.addPlayer(PLAYER_LIST[selfId]);
     } else {
-      PLAYER_LIST[selfId] = new Player(data.name, socket, gunList.P2000, 1);
-      game.players.push(PLAYER_LIST[selfId]);
+      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.ak47, gunList.p2000], 1);
+      game.addPlayer(PLAYER_LIST[selfId]);
     }
     let ip = PLAYER_LIST[selfId].initPack();
     socket.emit("initPack", {
       player: ip,
       bullet: bInit,
-      map: map
+      map: maps[game.mapIndex]
     });
   });
 
@@ -336,8 +388,8 @@ io.on("connection", (socket) => {
     p.my = data.my;
     p.shooting = data.mousePress;
     p.crouching = data.shift;
-    if(p.weapon == p.gun && data.switch) {
-      p.weapon = p.knife;
+    if(data.switch) {
+      p.switch();
     }
   });
 
@@ -359,10 +411,6 @@ function updatePack() {
   let pkg = {};
   let pkgp = [];
   let pkgb = [];
-  let game = 0;
-  if(game.state == 0) {
-    game = "Waiting for players...";
-  }
   for(let i in PLAYER_LIST) {
     PLAYER_LIST[i].update();
     pkgp.push({
@@ -374,7 +422,8 @@ function updatePack() {
       active: PLAYER_LIST[i].active,
       name: PLAYER_LIST[i].name,
       state: PLAYER_LIST[i].weapon.type,
-      acc: PLAYER_LIST[i].accuracy
+      acc: PLAYER_LIST[i].accuracy,
+      gun: PLAYER_LIST[i].weapon
     });
   }
   pkg.player = pkgp
@@ -384,10 +433,12 @@ function updatePack() {
       y: BULLET_LIST[i].y,
       x: BULLET_LIST[i].x,
       id: bInit,
-      game: game
+      a: BULLET_LIST[i].parent.angle
     })
   }
   pkg.bullet = pkgb;
+  pkg.map = maps[game.mapIndex];
+  game.check();
   io.emit("updatePack", pkg);
 
 }
