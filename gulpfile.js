@@ -103,7 +103,7 @@ function js() {
       plugins: [
           new HtmlWebpackPlugin({
               title: "Developer version" ,
-              template: __dirname + "/src/client/index0.html",
+              template: __dirname + "/src/client/index.html",
               filename: __dirname + './builds/developer/client/index.html'
           })
      ]
