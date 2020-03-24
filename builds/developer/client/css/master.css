@@ -152,3 +152,24 @@ body {
   text-align: center;
   color: white;
 }
+.hp {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 90%;
+  background-color: rgba(148, 148, 148, 0.9);
+  height: 6%;
+  width: 60%;
+  border-radius: 5px;
+  margin: 0;
+}
+#health {
+  position: relative;
+  width: 99%;
+  height: 85%;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  border-radius: 10px;
+}

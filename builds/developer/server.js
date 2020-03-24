@@ -4,7 +4,7 @@ const server = require("http").Server(app);
 const gunList = require("./guns.config.js");
 
 const fs = require('fs');
-const maps = [JSON.parse(fs.readFileSync(__dirname + '/Lol.json', 'utf-8')), JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'))]
+const maps = [JSON.parse(fs.readFileSync(__dirname + '/Spawns.json', 'utf-8')), JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'))]
 
 server.listen(process.env.PORT || 2000);
 console.log("Server started");
@@ -96,13 +96,13 @@ class Game {
 }
 
 class Player {
-  constructor(name, socket, guns, team) {
+  constructor(name, socket, guns, team, pos) {
     this.name = name;
     this.socket = socket;
     this.id = socket.id;
     this.team = team;
-    this.x = Math.floor(Math.random() * 600) + 0;
-    this.y = Math.floor(Math.random() * 600) + 0;
+    this.x = pos[0];
+    this.y = pos[1];
     this.w = 50;
     this.h = 50;
     this.r = 20;
@@ -291,7 +291,7 @@ class Player {
       if(shooter.id !== this.id) {
         let dx = b.x - this.x;
   		  let dy = b.y - this.y;
-  		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r) {
+  		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r && this.team !== shooter.team) {
           this.health -= shooter.gun.dmg;
           delete BULLET_LIST[i];
           console.log("Hit " + this.health);
@@ -319,7 +319,7 @@ class Player {
 
 class Bullet {
   constructor(parent, x, y, id) {
-    this.calc = 80;
+    this.calc = parent.weapon.w;
     this.x = parent.x + this.calc * Math.cos(parent.angle);
     this.y = parent.y + this.calc * Math.sin(parent.angle);
     this.id = id;
@@ -364,10 +364,10 @@ io.on("connection", (socket) => {
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
     if(count % 2 === 0) {
-      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.ak47, gunList.p2000], 0);
+      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.sigm400, gunList.p2000], 0, [maps[0].spawns[0].x, maps[0].spawns[0].y]);
       game.addPlayer(PLAYER_LIST[selfId]);
     } else {
-      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.ak47, gunList.p2000], 1);
+      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList.ak47, gunList.p2000], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y]);
       game.addPlayer(PLAYER_LIST[selfId]);
     }
     let ip = PLAYER_LIST[selfId].initPack();
@@ -376,6 +376,7 @@ io.on("connection", (socket) => {
       bullet: bInit,
       map: maps[game.mapIndex]
     });
+    count++;
   });
 
   socket.on("keypress", (data) => {
@@ -423,7 +424,8 @@ function updatePack() {
       name: PLAYER_LIST[i].name,
       state: PLAYER_LIST[i].weapon.type,
       acc: PLAYER_LIST[i].accuracy,
-      gun: PLAYER_LIST[i].weapon
+      gun: PLAYER_LIST[i].weapon,
+      hp: PLAYER_LIST[i].health
     });
   }
   pkg.player = pkgp

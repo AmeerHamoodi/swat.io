@@ -7,7 +7,15 @@ module.exports.ak47 = {
   mass: 4,
   type: "gun",
   canShoot: 100,
-  canMax: 100
+  canMax: 100,
+  w: 80,
+  h: 15,
+  x: 14,
+  y: -8,
+  rx: 8,
+  ry: -42,
+  lx: 1,
+  ly: -22
 }
 module.exports.p2000 = {
   name: "p2000",
@@ -18,5 +26,33 @@ module.exports.p2000 = {
   mass: 2,
   type: "gun",
   canShoot: 10,
-  canMax: 10
+  canMax: 10,
+  w: 40,
+  h: 10,
+  x: 26,
+  y: -4,
+  rx: 8,
+  ry: -22,
+  lx: 4,
+  ly: -22
+}
+
+module.exports.sigm400 = {
+  name: "sigm400",
+  price: 1800,
+  dmg: 22,
+  fireRate: 8,
+  accuracy: [2, -1],
+  mass: 4,
+  type: "gun",
+  canShoot: 100,
+  canMax: 100,
+  w: 80,
+  h: 15,
+  x: 14,
+  y: -8,
+  rx: 8,
+  ry: -42,
+  lx: 1,
+  ly: -22
 }
