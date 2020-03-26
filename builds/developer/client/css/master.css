@@ -12,6 +12,24 @@ body {
   height: 100%;
 
 }
+canvas {
+  position: absolute;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A1F38;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #212747;
+}
 .welcome {
   background-color: #525556;
 }
@@ -113,15 +131,14 @@ body {
   top: 5%;
 }
 .chooseLoadout {
-  position: absolute;
-  right: 5%;
-  top: 5%;
+  float: right;
   background-color: rgba(0, 0, 0, 0.5);
   width: 20%;
-  height: 60%;
 }
 .primarys {
+  height: 300px;
   border-bottom: 1px solid #4FA4EA;
+  overflow: auto;
 }
 .weapon {
   color: white;
@@ -140,7 +157,10 @@ body {
   width: 50%;
   display: block;
 }
-
+.secondaries {
+  height: 300px;
+  overflow: auto;
+}
 .secondaries .weaponImg {
   margin-left: auto;
   margin-right: auto;
@@ -172,4 +192,95 @@ body {
   transform: translateY(-50%);
   background-color: white;
   border-radius: 10px;
+}
+.selected {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.pstats {
+  float: left;
+  margin-top: 2%;
+  margin-left: 2%;
+  height: 38vh;
+  width: 15vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+}
+.sstats {
+  float: left;
+  margin-top: 25%;
+  margin-left: 2%;
+  height: 38vh;
+  width: 15vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+}
+.pstats h4 {
+  text-align: center;
+}
+.sstats h4 {
+  text-align: center;
+  white-space: nowrap;
+}
+.pname::before {
+  content: "NAME: ";
+}
+.pname {
+  text-align: center;
+  margin-bottom: 10%;
+}
+.damage {
+  margin-bottom: 10%;
+}
+.bars {
+  display: flex;
+  flex-flow: row;
+  flex-direction: row;
+}
+.bar {
+  width: 1.5vw;
+  background-color: #4FA4EA;
+  border-radius: 20%;
+  height: 3vh;
+  margin-left: 3%;
+}
+.damageText {
+  margin-left: 20px;
+}
+.damageText::after {
+  content: " / shot";
+}
+.space {
+  margin-left: 20px;
+  white-space: nowrap;
+}
+.fireRate {
+  margin-bottom: 10%;
+}
+.acc {
+  margin-bottom: 10%;
+}
+.lb {
+  float: right;
+  position: relative;
+  min-height: 20vh;
+  min-width: 20vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  margin-top: 2%;
+  margin-right: 2%;
+}
+.lb-header {
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 1;
+  z-index: 5;
 }
