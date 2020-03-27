@@ -179,10 +179,20 @@ class Player {
         r: PLAYER_LIST[i].r,
         acc: PLAYER_LIST[i].accuracy,
         gun: PLAYER_LIST[i].weapon,
-        team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0
+        team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0,
+        score: PLAYER_LIST[i].score
       });
     }
     return pkg;
+  }
+  reset() {
+    if(!this.active) {
+      this.health = 100;
+      this.r = 20;
+      this.x = Math.floor(Math.random() * 700);
+      this.y = Math.floor(Math.random() * 900);
+      this.active = true;
+    }
   }
   switch() {
     if(this.canSwitch) {
@@ -198,7 +208,7 @@ class Player {
       }
       setTimeout(() => {
         this.canSwitch = true;
-      }, 100);
+      }, 300);
     }
 
   }
@@ -362,17 +372,27 @@ class Bullet {
     this.active = true;
     this.timer = 0;
     this.r = 5;
+    this.startX = parent.x + this.calc * Math.cos(parent.angle);
+    this.startY = parent.y + this.calc * Math.sin(parent.angle);
+    this.ga = 0.8;
   }
   update() {
     this.x += this.spdX;
     this.y += this.spdY;
+    this.ga -= 0.01;
+    this.startX += this.spdX / 2;
+    this.startY += this.spdY / 2;
+    if(this.ga < 0) {
+      this.ga = 0;
+    }
   }
   initPack() {
-    bInit.push({x: this.x, y: this.y, id: this.id});
+    console.log(this.startX);
+    bInit.push({x: this.x, y: this.y, id: this.id, startX: this.startX, startY: this.startY});
   }
   timerUpdate() {
     this.timer++;
-    if(this.timer >= 300) {
+    if(this.timer >= 200) {
       this.active = false;
     }
     if(!this.active) {
@@ -384,6 +404,9 @@ class Bullet {
       x: this.x,
       y: this.y,
       id: this.id,
+      ang: this.parent.angle,
+      startX: this.startX,
+      startY: this.startY
     }
   }
 }
@@ -396,26 +419,35 @@ io.on("connection", (socket) => {
 
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
-    if(count % 2 === 0 && game.mode == "siege") {
-      console.log(data.wep.p);
-      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 0, [maps[0].spawns[0].x, maps[0].spawns[0].y]);
-      game.addPlayer(PLAYER_LIST[selfId]);
-    } else if(game.mode == "siege"){
-      console.log(data.wep.p);
-      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y]);
-      game.addPlayer(PLAYER_LIST[selfId]);
-    } else if (game.mode == "ffa") {
-      let t = Math.random();
-      PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, "rand");
-      game.addPlayer(PLAYER_LIST[selfId]);
+    for(i in BULLET_LIST) {
+      BULLET_LIST[i].initPack();
     }
+    if(PLAYER_LIST[socket.id] !== undefined) {
+      PLAYER_LIST[socket.id].reset();
+    } else {
+      if(count % 2 === 0 && game.mode == "siege") {
+        console.log(data.wep.p);
+        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 0, [maps[0].spawns[0].x, maps[0].spawns[0].y]);
+        game.addPlayer(PLAYER_LIST[selfId]);
+      } else if(game.mode == "siege"){
+        console.log(data.wep.p);
+        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y]);
+        game.addPlayer(PLAYER_LIST[selfId]);
+      } else if (game.mode == "ffa") {
+        let t = Math.random();
+        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, "rand");
+        game.addPlayer(PLAYER_LIST[selfId]);
+      }
+      count++;
+    }
+
     let ip = PLAYER_LIST[selfId].initPack();
     socket.emit("initPack", {
       player: ip,
       bullet: bInit,
       map: maps[game.mapIndex]
     });
-    count++;
+
   });
 
   socket.on("keypress", (data) => {
@@ -465,7 +497,8 @@ function updatePack() {
       acc: PLAYER_LIST[i].accuracy,
       gun: PLAYER_LIST[i].weapon,
       hp: PLAYER_LIST[i].health,
-      team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0
+      team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0,
+      score: PLAYER_LIST[i].score
     });
   }
   pkg.player = pkgp
@@ -475,7 +508,10 @@ function updatePack() {
       y: BULLET_LIST[i].y,
       x: BULLET_LIST[i].x,
       id: bInit,
-      a: BULLET_LIST[i].parent.angle
+      aangle: BULLET_LIST[i].parent.angle,
+      startX: BULLET_LIST[i].startX,
+      startY: BULLET_LIST[i].startY,
+      ga: BULLET_LIST[i].ga
     })
   }
   game.update();

@@ -132,3 +132,22 @@ module.exports.m4a1 = {
   lx: 1,
   ly: -22
 }
+module.exports.m16 = {
+  name: "m16",
+  price: 2100,
+  dmg: 28,
+  fireRate: 20,
+  accuracy: [1, -1],
+  mass: 6,
+  type: "gun",
+  canShoot: 100,
+  canMax: 100,
+  w: 80,
+  h: 15,
+  x: 14,
+  y: -8,
+  rx: 8,
+  ry: -42,
+  lx: 1,
+  ly: -22
+}

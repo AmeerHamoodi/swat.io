@@ -2,6 +2,27 @@
   font-family: main;
   src: url("./regular1.otf");
 }
+@-webkit-keyframes kill {
+  0% {
+    opacity: 0;
+    font-size: 2vw;
+  }
+  100% {
+    opacity: 1;
+    font-size: 4vw;
+  }
+}
+@keyframes kill {
+  0% {
+    opacity: 0;
+    font-size: 2vw;
+  }
+  100% {
+    opacity: 1;
+    font-size: 4vw;
+  }
+}
+
 html {
     height: 100%;
 }
@@ -283,4 +304,19 @@ canvas {
   white-space: nowrap;
   opacity: 1;
   z-index: 5;
+}
+.lbItems span {
+  color: white;
+}
+.lbItems {
+  font-size: 1.5vw;
+}
+.killItem {
+  color: black;
+  font-size: 2vw;
+  margin: auto;
+  text-align: center;
+  width: 80%;
+  animation-name: kill;
+  animation-duration: 1s;
 }
