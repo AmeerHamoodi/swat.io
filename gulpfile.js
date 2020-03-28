@@ -111,6 +111,39 @@ function js() {
   webpack(wp)
   .pipe(gulp.dest("./builds/developer/client/js"))
 }
+function jsProd() {
+  let wp = {
+    entry: "./src/client/js/main.js",
+    output: {
+      path: __dirname + "./builds/developer/client/js",
+      filename: "bundle.js"
+    },
+    module: {
+      rules: [
+      {
+        test: /\.(js)$/,
+        exclude: /(node_modules)/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
+      }
+      ]
+    },
+      mode: "production",
+      plugins: [
+          new HtmlWebpackPlugin({
+              title: "Developer version" ,
+              template: __dirname + "/src/client/index.html",
+              filename: __dirname + './builds/developer/client/index.html'
+          })
+     ]
+  };
+  webpack(wp)
+  .pipe(gulp.dest("./builds/developer/client/js"))
+}
 function csss(param) {
   return gulp.src("./src/client/css/**")
     .pipe(gulp.dest("./builds/developer/client/css"))
@@ -140,6 +173,13 @@ function build() {
       getEd();
       imgb();
 
+    } else if(result.type == "dev prod") {
+      jsProd();
+      csss();
+      serverdev();
+      gunEditor("builds/developer");
+      getEd();
+      imgb();
     }
   });
 }
