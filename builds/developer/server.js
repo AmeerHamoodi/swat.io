@@ -419,9 +419,6 @@ io.on("connection", (socket) => {
 
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
-    for(i in BULLET_LIST) {
-      BULLET_LIST[i].initPack();
-    }
     if(PLAYER_LIST[socket.id] !== undefined) {
       PLAYER_LIST[socket.id].reset();
     } else {
@@ -473,11 +470,6 @@ io.on("connection", (socket) => {
   })
 });
 
-setInterval(() => {
-  for(let i in BULLET_LIST) {
-    BULLET_LIST[i].timerUpdate()
-  }
-}, 1E3 / 60);
 
 function updatePack() {
   let pkg = {};
@@ -513,6 +505,7 @@ function updatePack() {
       startY: BULLET_LIST[i].startY,
       ga: BULLET_LIST[i].ga
     })
+    BULLET_LIST[i].timerUpdate()
   }
   game.update();
   pkg.bullet = pkgb;
