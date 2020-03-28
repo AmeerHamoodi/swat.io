@@ -497,7 +497,6 @@ function updatePack() {
   }
   game.update();
   pkg.bullet = pkgb;
-  pkg.map = maps[game.mapIndex];
   game.check();
   pkg.lb = game.lb;
   io.emit("updatePack", pkg);
