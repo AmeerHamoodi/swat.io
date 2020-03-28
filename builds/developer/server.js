@@ -21,7 +21,7 @@ const io = require("socket.io")(server);
 let count = 0;
 
 let PLAYER_LIST = {};
-let BULLET_LIST = {};
+let BULLET_LIST = [];
 
 
 function RectCircleColliding(circle,rect){
@@ -299,7 +299,8 @@ class Player {
     }
     if(this.shooting && this.nextshotin === 0) {
       let id = Math.random();
-      BULLET_LIST[id] = new Bullet(this, this.x, this.y, id);
+      let ind = BULLET_LIST.length - 1;
+      BULLET_LIST.push(new Bullet(this, this.x, this.y, id, ind));
       this.nextshotin = this.fireRate;
     } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
       this.nextshotin -= 1;
@@ -326,7 +327,7 @@ class Player {
   }
   updateHealth() {
     let killer = 0;
-    for(let i in BULLET_LIST) {
+    for(let i = 0; i < BULLET_LIST.length; i++) {
       let b = BULLET_LIST[i];
       let shooter = b.parent;
       if(shooter.id !== this.id) {
@@ -334,7 +335,7 @@ class Player {
   		  let dy = b.y - this.y;
   		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r && this.team !== shooter.team) {
           this.health -= shooter.gun.dmg;
-          delete BULLET_LIST[i];
+          BULLET_LIST.splice(i, BULLET_LIST[i]);
           console.log("Hit " + this.health);
           killer = {id: shooter.id, gun: shooter.gun, name: shooter.name};
         }
@@ -361,7 +362,7 @@ class Player {
 }
 
 class Bullet {
-  constructor(parent, x, y, id) {
+  constructor(parent, x, y, id, index) {
     this.calc = parent.weapon.w;
     this.x = parent.x + this.calc * Math.cos(parent.angle);
     this.y = parent.y + this.calc * Math.sin(parent.angle);
@@ -375,6 +376,7 @@ class Bullet {
     this.startX = parent.x + this.calc * Math.cos(parent.angle);
     this.startY = parent.y + this.calc * Math.sin(parent.angle);
     this.ga = 0.8;
+    this.index = index;
   }
   update() {
     this.x += this.spdX;
@@ -395,7 +397,7 @@ class Bullet {
       this.active = false;
     }
     if(!this.active) {
-      delete BULLET_LIST[this.id];
+      BULLET_LIST.splice(this.index, BULLET_LIST[this.index]);
     }
   }
 }
@@ -481,7 +483,7 @@ function updatePack() {
     });
   }
   pkg.player = pkgp
-  for(let i in BULLET_LIST) {
+  for(let i = 0; i < BULLET_LIST.length; i++) {
     BULLET_LIST[i].update();
     pkgb.push({
       y: BULLET_LIST[i].y,
