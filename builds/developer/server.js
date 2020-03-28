@@ -173,14 +173,14 @@ class Player {
         h: PLAYER_LIST[i].h,
         name: PLAYER_LIST[i].name,
         id: PLAYER_LIST[i].id,
-        wBw: world.w,
-        wBh: world.h,
         angle: this.angle,
         r: PLAYER_LIST[i].r,
         acc: PLAYER_LIST[i].accuracy,
         gun: PLAYER_LIST[i].weapon,
         team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0,
-        score: PLAYER_LIST[i].score
+        score: PLAYER_LIST[i].score,
+        wBw: world.w,
+        wBh: world.h
       });
     }
     return pkg;
@@ -387,8 +387,7 @@ class Bullet {
     }
   }
   initPack() {
-    console.log(this.startX);
-    bInit.push({x: this.x, y: this.y, id: this.id, startX: this.startX, startY: this.startY});
+    bInit.push({x: this.x, y: this.y, startX: this.startX, startY: this.startY});
   }
   timerUpdate() {
     this.timer++;
@@ -397,16 +396,6 @@ class Bullet {
     }
     if(!this.active) {
       delete BULLET_LIST[this.id];
-    }
-  }
-  updatePack() {
-    return {
-      x: this.x,
-      y: this.y,
-      id: this.id,
-      ang: this.parent.angle,
-      startX: this.startX,
-      startY: this.startY
     }
   }
 }
@@ -483,13 +472,11 @@ function updatePack() {
       id: PLAYER_LIST[i].id,
       angle: PLAYER_LIST[i].angle,
       r: PLAYER_LIST[i].r,
-      active: PLAYER_LIST[i].active,
       name: PLAYER_LIST[i].name,
       state: PLAYER_LIST[i].weapon.type,
       acc: PLAYER_LIST[i].accuracy,
       gun: PLAYER_LIST[i].weapon,
       hp: PLAYER_LIST[i].health,
-      team: PLAYER_LIST[i].team % 1 == 0 ? PLAYER_LIST[i].team : 0,
       score: PLAYER_LIST[i].score
     });
   }
@@ -499,7 +486,6 @@ function updatePack() {
     pkgb.push({
       y: BULLET_LIST[i].y,
       x: BULLET_LIST[i].x,
-      id: bInit,
       aangle: BULLET_LIST[i].parent.angle,
       startX: BULLET_LIST[i].startX,
       startY: BULLET_LIST[i].startY,
