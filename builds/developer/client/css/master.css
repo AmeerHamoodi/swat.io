@@ -147,8 +147,10 @@ canvas {
 }
 .timer {
   position: fixed;
-  left: 80%;
+  left: 50%;
   top: 5%;
+  color: white;
+  font-size: 2vw;
 }
 .chooseLoadout {
   float: right;
@@ -304,11 +306,31 @@ canvas {
   opacity: 1;
   z-index: 5;
 }
-.lbItems span {
+.lbItem {
   color: white;
-}
-.lbItems {
   font-size: 1.5vw;
+  text-align: center;
+}
+.lbItem::first-letter {
+  color: #9e9e9e;
+  float: left;
+  margin-left: 10px;
+}
+.gameOver {
+  color: white;
+  background-color: rgb(0, 0, 0);
+  border-radius: 10px;
+  width: 50vw;
+  height: 40vh;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.itemsEnd {
+  display: flex;
+  flex-grow: row;
+  flex-direction: row;
 }
 .killItem {
   color: black;

@@ -20,9 +20,14 @@ const io = require("socket.io")(server);
 
 let count = 0;
 
-let PLAYER_LIST = {};
-let BULLET_LIST = [];
-
+function createRoomName(region) {
+  let dig = "";
+  let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let i = 3; i > 0; i--) {
+    dig += chars[Math.round(Math.random() * chars.length)];
+  }
+  return region + ":" + dig;
+}
 
 function RectCircleColliding(circle,rect){
     var distX = Math.abs(circle.x - rect.x-rect.w/2);
@@ -60,26 +65,34 @@ class World {
 }
 
 const world = new World(1800, 1800);
+let games = {};
 
 class Game {
-  constructor(mode) {
+  constructor(mode, id) {
     this.mode = mode;
-    this.players = [];
     this.lb = [];
-    this.timer = 3E5;
+    this.timer = 5E3;
     this.int = 0;
     this.state = 0;
-    this.reqAmount = 4;
     this.mapIndex = 0;
+    this.playerList = {};
+    this.bulletList = [];
+    this.players = 0;
+    this.id = id;
+    this.room = createRoomName("NA").toString();
   }
   addPlayer(player) {
-    this.players.push(player);
+    this.playerJoin();
+    this.playerList[player.socket.id] = player;
+    player.socket.join(this.room);
+    player.socket.room = this.room;
   }
   startTimer() {
     this.state = 2;
     console.log("state 2");
     this.int = setInterval(() => {
       this.timer -= 1000;
+      console.log(this.timer);
     }, 1000);
   }
   start() {
@@ -98,18 +111,32 @@ class Game {
     }
   }
   check() {
-    if(this.state == 0 && this.players.length >= this.reqAmount || this.mode == "ffa" && this.players.length >= 1) {
+    if(this.state == 0 && this.mode == "ffa" && this.players >= 1) {
       this.start();
     }
-    if(this.timer == 0) {
-      this.reset();
+    if(this.timer <= 0) {
+      this.gameOver();
     }
+  }
+  playerJoin() {
+    this.players ++;
+  }
+  gameOver() {
+    clearInterval(this.int);
+    io.emit("gameOver", this.lb);
+    for(let i in this.playerList) {
+      let pp = this.playerList[i];
+      pp.joined = false;
+    }
+    setTimeout(() => {
+      this.reset();
+    }, 5000);
   }
   update() {
     if(this.state == 2) {
       this.lb = [];
-      for(let i = 0; i < this.players.length; i++) {
-        let p = this.players[i];
+      for(let i in this.playerList) {
+        let p = this.playerList[i];
         this.lb.push({name: p.name, score: p.score});
       }
       this.lb.sort(compareScore);
@@ -119,12 +146,13 @@ class Game {
     this.state = 0;
     this.timer = 3E5;
     this.mapIndex = 0;
-    this.players = [];
+    this.players = 0;
+    io.emit("rest");
   }
 }
 
 class Player {
-  constructor(name, socket, guns, team, pos) {
+  constructor(name, socket, guns, team, pos, gameId) {
     this.name = name;
     this.socket = socket;
     this.id = socket.id;
@@ -162,9 +190,12 @@ class Player {
     this.sec = guns[1];
     this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
     this.active = true;
+    this.gameId = gameId;
+    this.joined = true;
   }
   initPack() {
     let pkg = [];
+    let PLAYER_LIST = games[this.gameId].playerList;
     for(let i in PLAYER_LIST) {
       pkg.push({
         x: PLAYER_LIST[i].x,
@@ -299,8 +330,8 @@ class Player {
     }
     if(this.shooting && this.nextshotin === 0) {
       let id = Math.random();
-      let ind = BULLET_LIST.length - 1;
-      BULLET_LIST.push(new Bullet(this, this.x, this.y, id, ind));
+      let ind = games[this.gameId].bulletList.length - 1;
+      games[this.gameId].bulletList.push(new Bullet(this, this.x, this.y, id, ind, this.gameId));
       this.nextshotin = this.fireRate;
     } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
       this.nextshotin -= 1;
@@ -315,7 +346,7 @@ class Player {
     }
   }
   updateMap(oldPos){
-    let map = maps[game.mapIndex];
+    let map = maps[games[this.gameId].mapIndex];
     for(let i = 0; i < map.objects.length; i++) {
       let b = map.objects[i];
       let coll = RectCircleColliding(this, b);
@@ -327,15 +358,16 @@ class Player {
   }
   updateHealth() {
     let killer = 0;
-    for(let i = 0; i < BULLET_LIST.length; i++) {
-      let b = BULLET_LIST[i];
+    let bs = games[this.gameId];
+    for(let i = 0; i < bs.length; i++) {
+      let b = bs[i];
       let shooter = b.parent;
       if(shooter.id !== this.id) {
         let dx = b.x - this.x;
   		  let dy = b.y - this.y;
   		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r && this.team !== shooter.team) {
           this.health -= shooter.gun.dmg;
-          BULLET_LIST.splice(i, BULLET_LIST[i]);
+          bs.splice(i, bs[i]);
           console.log("Hit " + this.health);
           killer = {id: shooter.id, gun: shooter.gun, name: shooter.name};
         }
@@ -362,7 +394,7 @@ class Player {
 }
 
 class Bullet {
-  constructor(parent, x, y, id, index) {
+  constructor(parent, x, y, id, index, gameId) {
     this.calc = parent.weapon.w;
     this.x = parent.x + this.calc * Math.cos(parent.angle);
     this.y = parent.y + this.calc * Math.sin(parent.angle);
@@ -377,6 +409,7 @@ class Bullet {
     this.startY = parent.y + this.calc * Math.sin(parent.angle);
     this.ga = 0.8;
     this.index = index;
+    this.gameId = gameId;
   }
   update() {
     this.x += this.spdX;
@@ -397,49 +430,52 @@ class Bullet {
       this.active = false;
     }
     if(!this.active) {
-      BULLET_LIST.splice(this.index, BULLET_LIST[this.index]);
+      let bs = games[this.gameId].bulletList;
+      bs.splice(this.index, bs[this.index]);
     }
   }
 }
 
 let bInit = [];
-let game = new Game("ffa");
+let id = Math.random();
+games[id] = new Game("ffa", id);
+
+
 io.on("connection", (socket) => {
   let selfId = Math.random();
   socket.id = selfId;
 
+  socket.emit("gameId", games[id].room);
+
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
-    if(PLAYER_LIST[socket.id] !== undefined) {
-      PLAYER_LIST[socket.id].reset();
-    } else {
-      if(count % 2 === 0 && game.mode == "siege") {
-        console.log(data.wep.p);
-        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 0, [maps[0].spawns[0].x, maps[0].spawns[0].y]);
-        game.addPlayer(PLAYER_LIST[selfId]);
-      } else if(game.mode == "siege"){
-        console.log(data.wep.p);
-        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y]);
-        game.addPlayer(PLAYER_LIST[selfId]);
-      } else if (game.mode == "ffa") {
-        let t = Math.random();
-        PLAYER_LIST[selfId] = new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, "rand");
-        game.addPlayer(PLAYER_LIST[selfId]);
+    if(games[id].playerList[socket.id] !== undefined) {
+      games[id].playerList[socket.id].reset();
+      if(!games[id].playerList[socket.id].joined) {
+        games[id].playerJoin();
       }
-      count++;
+    } else {
+      if(games[id].players % 2 === 0 && games[id].mode == "siege") {
+        games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 0, [maps[0].spawns[0].x, maps[0].spawns[0].y], id));
+      } else if(games[id].mode == "siege"){
+        games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y], id));
+      } else if (games[id].mode == "ffa") {
+        let t = Math.random();
+        games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, "rand", id));
+      }
     }
 
-    let ip = PLAYER_LIST[selfId].initPack();
+    let ip = games[id].playerList[selfId].initPack();
     socket.emit("initPack", {
       player: ip,
       bullet: bInit,
-      map: maps[game.mapIndex]
+      map: maps[games[id].mapIndex]
     });
 
   });
 
   socket.on("keypress", (data) => {
-    let p = PLAYER_LIST[selfId];
+    let p = games[id].playerList[selfId];
     p.up = data.up;
     p.down = data.down;
     p.right = data.right;
@@ -457,50 +493,53 @@ io.on("connection", (socket) => {
 
   socket.on("disconnect", (data) => {
     console.log("[SOCKET]: disconnected");
-    delete PLAYER_LIST[socket.id];
+    delete games[id].playerList[socket.id];
   })
 });
 
 
 function updatePack() {
-  let pkg = {};
-  let pkgp = [];
-  let pkgb = [];
-  for(let i in PLAYER_LIST) {
-    PLAYER_LIST[i].update();
-    pkgp.push({
-      x: PLAYER_LIST[i].x,
-      y: PLAYER_LIST[i].y,
-      id: PLAYER_LIST[i].id,
-      angle: PLAYER_LIST[i].angle,
-      r: PLAYER_LIST[i].r,
-      name: PLAYER_LIST[i].name,
-      state: PLAYER_LIST[i].weapon.type,
-      acc: PLAYER_LIST[i].accuracy,
-      gun: PLAYER_LIST[i].weapon,
-      hp: PLAYER_LIST[i].health,
-      score: PLAYER_LIST[i].score
-    });
+  if(games[id].timer >= 0) {
+    let pkg = {};
+    let pkgp = [];
+    let pkgb = [];
+    for(let i in games[id].playerList) {
+      games[id].playerList[i].update();
+      let p = games[id].playerList[i];
+      pkgp.push({
+        x: p.x,
+        y: p.y,
+        id: p.id,
+        angle: p.angle,
+        r: p.r,
+        name: p.name,
+        state: p.weapon.type,
+        acc: p.accuracy,
+        gun: p.weapon,
+        hp: p.health,
+        score: p.score
+      });
+    }
+    pkg.player = pkgp
+    for(let i = 0; i < games[id].bulletList.length; i++) {
+      let b = games[id].bulletList[i];
+      b.update();
+      pkgb.push({
+        y: b.y,
+        x: b.x,
+        aangle: b.parent.angle,
+        startX: b.startX,
+        startY: b.startY,
+        ga: b.ga
+      })
+      b.timerUpdate()
+    }
+    games[id].update();
+    pkg.bullet = pkgb;
+    games[id].check();
+    pkg.lb = games[id].lb;
+    pkg.timer = games[id].timer;
+    io.emit("updatePack", pkg);
   }
-  pkg.player = pkgp
-  for(let i = 0; i < BULLET_LIST.length; i++) {
-    BULLET_LIST[i].update();
-    pkgb.push({
-      y: BULLET_LIST[i].y,
-      x: BULLET_LIST[i].x,
-      aangle: BULLET_LIST[i].parent.angle,
-      startX: BULLET_LIST[i].startX,
-      startY: BULLET_LIST[i].startY,
-      ga: BULLET_LIST[i].ga
-    })
-    BULLET_LIST[i].timerUpdate()
-  }
-  game.update();
-  pkg.bullet = pkgb;
-  game.check();
-  pkg.lb = game.lb;
-  io.emit("updatePack", pkg);
-
 }
-
 setInterval(updatePack, 1E3 / 60);
