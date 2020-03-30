@@ -31,7 +31,11 @@ body {
   overflow: hidden;
   font-family: main;
   height: 100%;
-
+  cursor: url('../img/assets/weapons/crosshair.png'), auto;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
 }
 canvas {
   position: absolute;
@@ -51,6 +55,7 @@ canvas {
 ::-webkit-scrollbar-thumb:hover {
   background: #212747;
 }
+
 .welcome {
   background-color: #525556;
 }
@@ -327,10 +332,18 @@ canvas {
   top: 50%;
   transform: translate(-50%, -50%);
 }
+.gameOver h4 {
+  text-align: center;
+  font-size: 3vw;
+}
 .itemsEnd {
-  display: flex;
-  flex-grow: row;
-  flex-direction: row;
+  width: 100%;
+}
+.itemsEnd tr {
+  text-align: center;
+  margin-right: auto;
+  border-bottom: 1px solid red;
+  margin-bottom: auto;
 }
 .killItem {
   color: black;
@@ -340,4 +353,26 @@ canvas {
   width: 80%;
   animation-name: kill;
   animation-duration: 1s;
+}
+#lbItems {
+  width: 100%;
+}
+#lbItems tr {
+  text-align: center;
+  color: white;
+}
+.bottomBar {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  width: 20%;
+  height: 10vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: white;
+}
+#weaponName::before {
+  content: "WEAPON: ";
+}
+#ammo::before {
+  content: "AMMO: ";
 }

@@ -4,7 +4,7 @@ const server = require("http").Server(app);
 const gunList = require("./guns.config.js");
 
 const fs = require('fs');
-const maps = [JSON.parse(fs.readFileSync(__dirname + '/Spawns.json', 'utf-8')), JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'))]
+const maps = [JSON.parse(fs.readFileSync(__dirname + '/Small_Ville.json', 'utf-8')), JSON.parse(fs.readFileSync(__dirname + '/Collision-test.json', 'utf-8'))]
 
 server.listen(process.env.PORT || 2000);
 console.log("Server started");
@@ -64,6 +64,13 @@ class World {
   }
 }
 
+function genPos() {
+  let i = Math.floor((Math.random() * 3) + 0);
+  let keys = [{x: 400, y: 400}, {x: 1500, y: 350}, {x:400, y: 1220}, {x: 1500, y: 1220}];
+  console.log(keys[i]);
+  return [keys[i].x, keys[i].y]
+}
+
 const world = new World(1800, 1800);
 let games = {};
 
@@ -80,6 +87,7 @@ class Game {
     this.players = 0;
     this.id = id;
     this.room = createRoomName("NA").toString();
+    this.gameOverCalled = false;
   }
   addPlayer(player) {
     this.playerJoin();
@@ -92,7 +100,6 @@ class Game {
     console.log("state 2");
     this.int = setInterval(() => {
       this.timer -= 1000;
-      console.log(this.timer);
     }, 1000);
   }
   start() {
@@ -114,12 +121,14 @@ class Game {
     if(this.state == 0 && this.mode == "ffa" && this.players >= 1) {
       this.start();
     }
-    if(this.timer <= 0) {
+    if(this.timer <= 0 && !this.gameOverCalled) {
       this.gameOver();
+      this.gameOverCalled = true;
     }
   }
-  playerJoin() {
+  playerJoin(p) {
     this.players ++;
+    console.log("Player joined");
   }
   gameOver() {
     clearInterval(this.int);
@@ -130,6 +139,7 @@ class Game {
     }
     setTimeout(() => {
       this.reset();
+      console.log("Game restarted");
     }, 5000);
   }
   update() {
@@ -137,7 +147,9 @@ class Game {
       this.lb = [];
       for(let i in this.playerList) {
         let p = this.playerList[i];
-        this.lb.push({name: p.name, score: p.score});
+        if(p.joined) {
+          this.lb.push({name: p.name, score: p.score});
+        }
       }
       this.lb.sort(compareScore);
     }
@@ -147,7 +159,17 @@ class Game {
     this.timer = 3E5;
     this.mapIndex = 0;
     this.players = 0;
-    io.emit("rest");
+    io.emit("reset");
+    this.gameOverCalled = false;
+    this.check();
+    for(let i in this.playerList) {
+      let p = this.playerList[i];
+      p.score = 0;
+      p.health = 100;
+      p.r = 0;
+      p.joined = false;
+    }
+    once = 0;
   }
 }
 
@@ -157,8 +179,8 @@ class Player {
     this.socket = socket;
     this.id = socket.id;
     this.team = team;
-    this.x = typeof pos == "array" ? pos[0] : Math.floor(Math.random() * 700);
-    this.y = typeof pos == "array" ? pos[1] : Math.floor(Math.random() * 900);
+    this.x = pos[0];
+    this.y = pos[1];
     this.w = 50;
     this.h = 50;
     this.r = 20;
@@ -192,6 +214,8 @@ class Player {
     this.active = true;
     this.gameId = gameId;
     this.joined = true;
+    this.toSend = true;
+    this.reloading = false;
   }
   initPack() {
     let pkg = [];
@@ -216,14 +240,20 @@ class Player {
     }
     return pkg;
   }
-  reset() {
-    if(!this.active) {
-      this.health = 100;
-      this.r = 20;
-      this.x = Math.floor(Math.random() * 700);
-      this.y = Math.floor(Math.random() * 900);
-      this.active = true;
-    }
+  reset(guns) {
+    let pos = genPos();
+    this.health = 100;
+    this.r = 20;
+    this.x = pos[0];
+    this.y = pos[1];
+    this.active = true;
+    this.fireRate = guns[0].fireRate;
+    this.gun = guns[0];
+    this.weapon = this.gun;
+    this.crouching = false;
+    this.knife = {type: "meele", dmg: 50, rate: 20};
+    this.sec = guns[1];
+    this.accuracy = (this.gun.accuracy[0] + this.gun.accuracy[1]) / 2 + (this.spdX / 2 + this.spdY / 2) / 2;
   }
   switch() {
     if(this.canSwitch) {
@@ -328,11 +358,12 @@ class Player {
         }
       }
     }
-    if(this.shooting && this.nextshotin === 0) {
+    if(this.shooting && this.nextshotin === 0 && this.weapon.ammo > 0 && !this.reloading) {
       let id = Math.random();
       let ind = games[this.gameId].bulletList.length - 1;
       games[this.gameId].bulletList.push(new Bullet(this, this.x, this.y, id, ind, this.gameId));
       this.nextshotin = this.fireRate;
+      this.weapon.ammo--;
     } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
       this.nextshotin -= 1;
     }
@@ -345,12 +376,22 @@ class Player {
         this.weapon.canShoot = this.weapon.canMax;
     }
   }
+  reload() {
+    if(!this.reloading && this.weapon.ammo < this.weapon.maxAmmo) {
+      this.reloading = true;
+      setTimeout(() => {
+        this.weapon.ammo = this.weapon.maxAmmo;
+        this.reloading = false;
+      }, 500);
+    }
+
+  }
   updateMap(oldPos){
     let map = maps[games[this.gameId].mapIndex];
     for(let i = 0; i < map.objects.length; i++) {
       let b = map.objects[i];
       let coll = RectCircleColliding(this, b);
-      if(coll) {
+      if(coll && b.collidable) {
         this.x = oldPos[0];
         this.y = oldPos[1];
       }
@@ -358,16 +399,16 @@ class Player {
   }
   updateHealth() {
     let killer = 0;
-    let bs = games[this.gameId];
+    let bs = games[this.gameId].bulletList;
     for(let i = 0; i < bs.length; i++) {
       let b = bs[i];
       let shooter = b.parent;
       if(shooter.id !== this.id) {
         let dx = b.x - this.x;
   		  let dy = b.y - this.y;
-  		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r && this.team !== shooter.team) {
+  		  if(Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2)) <= this.r + b.r && games[this.gameId].timer > 0) {
           this.health -= shooter.gun.dmg;
-          bs.splice(i, bs[i]);
+          bs.splice(i, 1);
           console.log("Hit " + this.health);
           killer = {id: shooter.id, gun: shooter.gun, name: shooter.name};
         }
@@ -450,9 +491,10 @@ io.on("connection", (socket) => {
   console.log("[SERVER]: socket connected");
   socket.on("init", (data) => {
     if(games[id].playerList[socket.id] !== undefined) {
-      games[id].playerList[socket.id].reset();
+      games[id].playerList[socket.id].reset([gunList[data.wep.p], gunList[data.wep.s]]);
       if(!games[id].playerList[socket.id].joined) {
         games[id].playerJoin();
+        games[id].playerList[socket.id].joined = true;
       }
     } else {
       if(games[id].players % 2 === 0 && games[id].mode == "siege") {
@@ -461,7 +503,8 @@ io.on("connection", (socket) => {
         games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], 1, [maps[0].spawns[1].x, maps[0].spawns[1].y], id));
       } else if (games[id].mode == "ffa") {
         let t = Math.random();
-        games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, "rand", id));
+        let p = genPos();
+        games[id].addPlayer(new Player(data.name, socket, [gunList[data.wep.p], gunList[data.wep.s]], t, p, id));
       }
     }
 
@@ -487,6 +530,9 @@ io.on("connection", (socket) => {
     if(data.switch) {
       p.switch();
     }
+    if(data.reload) {
+      p.reload();
+    }
   });
 
   socket.emit("id", selfId);
@@ -494,12 +540,16 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (data) => {
     console.log("[SOCKET]: disconnected");
     delete games[id].playerList[socket.id];
+    games[id].players--;
   })
 });
 
-
+let once = 0;
 function updatePack() {
-  if(games[id].timer >= 0) {
+  if(games[id].timer >= 0 && once == 0) {
+    if(games[id].timer == 0) {
+      once ++;
+    }
     let pkg = {};
     let pkgp = [];
     let pkgb = [];
@@ -517,7 +567,9 @@ function updatePack() {
         acc: p.accuracy,
         gun: p.weapon,
         hp: p.health,
-        score: p.score
+        score: p.score,
+        team: p.team % 1 == 0 ? PLAYER_LIST[i].team : 0,
+        reloading: p.reloading
       });
     }
     pkg.player = pkgp

@@ -8,6 +8,8 @@ module.exports.ak47 = {
   type: "gun",
   canShoot: 100,
   canMax: 100,
+  ammo: 30,
+  maxAmmo: 30,
   w: 80,
   h: 15,
   x: 14,
@@ -15,7 +17,8 @@ module.exports.ak47 = {
   rx: 8,
   ry: -42,
   lx: 1,
-  ly: -22
+  ly: -22,
+  selection: 'PRIMARY'
 }
 module.exports.p2000 = {
   name: "p2000",
@@ -27,6 +30,8 @@ module.exports.p2000 = {
   type: "gun",
   canShoot: 10,
   canMax: 10,
+  ammo: 10,
+  maxAmmo: 10,
   w: 40,
   h: 10,
   x: 26,
@@ -34,7 +39,8 @@ module.exports.p2000 = {
   rx: 8,
   ry: -22,
   lx: 4,
-  ly: -22
+  ly: -22,
+  selection: 'SECONDARY'
 }
 
 module.exports.sigm400 = {
@@ -47,6 +53,8 @@ module.exports.sigm400 = {
   type: "gun",
   canShoot: 100,
   canMax: 100,
+  ammo: 30,
+  maxAmmo: 30,
   w: 80,
   h: 15,
   x: 14,
@@ -54,7 +62,8 @@ module.exports.sigm400 = {
   rx: 8,
   ry: -42,
   lx: 1,
-  ly: -22
+  ly: -22,
+  selection: 'PRIMARY'
 }
 module.exports.scar = {
   name: "scar",
@@ -66,6 +75,8 @@ module.exports.scar = {
   type: "gun",
   canShoot: 100,
   canMax: 100,
+  ammo: 30,
+  maxAmmo: 30,
   w: 80,
   h: 15,
   x: 14,
@@ -73,18 +84,21 @@ module.exports.scar = {
   rx: 8,
   ry: -42,
   lx: 1,
-  ly: -22
+  ly: -22,
+  selection: 'PRIMARY'
 }
 module.exports.mac11 = {
   name: "mac11",
   price: 350,
-  dmg: 10,
+  dmg: 5,
   fireRate: 4,
   accuracy: [3, -3],
   mass: 1,
   type: "gun",
   canShoot: 4,
   canMax: 4,
+  ammo: 20,
+  maxAmmo: 20,
   w: 40,
   h: 10,
   x: 26,
@@ -92,7 +106,8 @@ module.exports.mac11 = {
   rx: 8,
   ry: -22,
   lx: 4,
-  ly: -22
+  ly: -22,
+  selection: 'SECONDARY'
 }
 module.exports.magnum = {
   name: "magnum",
@@ -104,6 +119,8 @@ module.exports.magnum = {
   type: "gun",
   canShoot: 60,
   canMax: 60,
+  ammo: 5,
+  maxAmmo: 5,
   w: 40,
   h: 10,
   x: 26,
@@ -111,7 +128,8 @@ module.exports.magnum = {
   rx: 8,
   ry: -22,
   lx: 4,
-  ly: -22
+  ly: -22,
+  selection: 'SECONDARY'
 }
 module.exports.m4a1 = {
   name: "m4a1",
@@ -123,6 +141,8 @@ module.exports.m4a1 = {
   type: "gun",
   canShoot: 100,
   canMax: 100,
+  ammo: 15,
+  maxAmmo: 15,
   w: 80,
   h: 15,
   x: 14,
@@ -130,7 +150,8 @@ module.exports.m4a1 = {
   rx: 8,
   ry: -42,
   lx: 1,
-  ly: -22
+  ly: -22,
+  selection: 'PRIMARY'
 }
 module.exports.m16 = {
   name: "m16",
@@ -142,6 +163,8 @@ module.exports.m16 = {
   type: "gun",
   canShoot: 100,
   canMax: 100,
+  ammo: 20,
+  maxAmmo: 20,
   w: 80,
   h: 15,
   x: 14,
@@ -149,5 +172,6 @@ module.exports.m16 = {
   rx: 8,
   ry: -42,
   lx: 1,
-  ly: -22
+  ly: -22,
+  selection: 'PRIMARY'
 }
