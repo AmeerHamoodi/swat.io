@@ -33,8 +33,8 @@ function RectCircleColliding(circle,rect){
     var distX = Math.abs(circle.x - rect.x-rect.w/2);
     var distY = Math.abs(circle.y - rect.y-rect.h/2);
 
-    if (distX > (rect.w/2 + circle.r)) { return false; }
-    if (distY > (rect.h/2 + circle.r)) { return false; }
+    if (distX > (rect.w/2 + circle.r - 1)) { return false; }
+    if (distY > (rect.h/2 + circle.r - 1)) { return false; }
 
     if (distX <= (rect.w/2)) { return true; }
     if (distY <= (rect.h/2)) { return true; }
@@ -216,6 +216,7 @@ class Player {
     this.joined = true;
     this.toSend = true;
     this.reloading = false;
+    this.pd = 0;
   }
   initPack() {
     let pkg = [];
@@ -291,14 +292,14 @@ class Player {
     } else {
       if(this.movingY) {
         if(this.spdY > 0) {
-          if(this.spdY - 0.1 <= 0) {
+          if(this.spdY - 0.5 <= 0) {
             this.spdY = 0;
             this.movingY = false;
           } else {
             this.spdY -= this.acc;
           }
         } else if(this.spdY < 0) {
-          if(this.spdY + 0.1 >= 0) {
+          if(this.spdY + 0.5 >= 0) {
             this.spdY = 0;
             this.movingY = false;
           } else {
@@ -341,7 +342,7 @@ class Player {
     } else {
       if(this.movingX) {
         if(this.spdX > 0) {
-          if(this.spdX - 0.3 <= 0) {
+          if(this.spdX - 0.5 <= 0) {
             this.spdX = 0;
             this.movingX = false;
           } else {
@@ -349,7 +350,7 @@ class Player {
           }
         }
         if(this.spdX < 0) {
-          if(this.spdX + 0.3 >= 0) {
+          if(this.spdX + 0.5 >= 0) {
             this.spdX = 0;
             this.movingX = false;
           } else {
@@ -361,7 +362,7 @@ class Player {
     if(this.shooting && this.nextshotin === 0 && this.weapon.ammo > 0 && !this.reloading) {
       let id = Math.random();
       let ind = games[this.gameId].bulletList.length - 1;
-      games[this.gameId].bulletList.push(new Bullet(this, this.x, this.y, id, ind, this.gameId));
+      games[this.gameId].bulletList.push(new Bullet(this, this.x, this.y, id, ind, this.gameId, ));
       this.nextshotin = this.fireRate;
       this.weapon.ammo--;
     } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
@@ -392,8 +393,17 @@ class Player {
       let b = map.objects[i];
       let coll = RectCircleColliding(this, b);
       if(coll && b.collidable) {
-        this.x = oldPos[0];
-        this.y = oldPos[1];
+        if(this.spdX == 0) {
+          this.y = oldPos[1];
+        }
+        if(this.spdY == 0) {
+          this.x = oldPos[0];
+        }
+
+        if(this.spdX !== 0 && this.spdY !== 0) {
+          this.x = oldPos[0];
+          this.y = oldPos[1];
+        }
       }
     }
   }
@@ -451,6 +461,7 @@ class Bullet {
     this.ga = 0.8;
     this.index = index;
     this.gameId = gameId;
+    this.length = index + 1;
   }
   update() {
     this.x += this.spdX;
@@ -472,7 +483,10 @@ class Bullet {
     }
     if(!this.active) {
       let bs = games[this.gameId].bulletList;
-      bs.splice(this.index, bs[this.index]);
+      if(bs.length < this.length) {
+        this.index = (this.length - bs.length) - 1;
+      }
+      bs.splice(this.index, 1);
     }
   }
 }
