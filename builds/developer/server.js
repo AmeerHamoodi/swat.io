@@ -217,6 +217,7 @@ class Player {
     this.toSend = true;
     this.reloading = false;
     this.pd = 0;
+    this.realShot = false;
   }
   initPack() {
     let pkg = [];
@@ -359,12 +360,21 @@ class Player {
         }
       }
     }
+
+    if(this.nextshotin > 0) {
+      this.realShot = false;
+    }
+    if(typeof this.fireRate == "string") {
+      this.realShot = false;
+    }
+
     if(this.shooting && this.nextshotin === 0 && this.weapon.ammo > 0 && !this.reloading) {
       let id = Math.random();
       let ind = games[this.gameId].bulletList.length - 1;
       games[this.gameId].bulletList.push(new Bullet(this, this.x, this.y, id, ind, this.gameId, ));
       this.nextshotin = this.fireRate;
       this.weapon.ammo--;
+      this.realShot = true;
     } else if(typeof this.nextshotin !== "string" && this.nextshotin > 0) {
       this.nextshotin -= 1;
     }
@@ -376,6 +386,7 @@ class Player {
         this.nextshotin = 0;
         this.weapon.canShoot = this.weapon.canMax;
     }
+
   }
   reload() {
     if(!this.reloading && this.weapon.ammo < this.weapon.maxAmmo) {
@@ -583,7 +594,8 @@ function updatePack() {
         hp: p.health,
         score: p.score,
         team: p.team % 1 == 0 ? PLAYER_LIST[i].team : 0,
-        reloading: p.reloading
+        reloading: p.reloading,
+        shooting: p.realShot
       });
     }
     pkg.player = pkgp
