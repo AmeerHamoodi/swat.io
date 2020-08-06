@@ -1,0 +1,400 @@
+@font-face {
+  font-family: main;
+  src: url("./regular1.otf");
+}
+@-webkit-keyframes kill {
+  0% {
+    opacity: 0;
+    font-size: 2vw;
+  }
+  100% {
+    opacity: 1;
+    font-size: 4vw;
+  }
+}
+@keyframes kill {
+  0% {
+    opacity: 0;
+    font-size: 2vw;
+  }
+  100% {
+    opacity: 1;
+    font-size: 4vw;
+  }
+}
+
+html {
+    height: 100%;
+}
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: main;
+  height: 100%;
+  cursor: url('../img/assets/weapons/crosshair.png'), auto;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+}
+canvas {
+  position: absolute;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1A1F38;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #212747;
+}
+
+.welcome {
+  background-color: #b6db66;
+}
+.welcomeContainer {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+#game {
+  display: none;
+  width: 100%;
+  height: 100vh;
+}
+.welcomeScreen {
+  text-align: center;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 30%;
+  font-size: 4em;
+  color: white;
+}
+.welcomeScreen span {
+  color: #1A1F38;
+}
+#name {
+  width: 25vw;
+  height: 6vh;
+  font-family: main;
+  border-radius: 5px;
+  background-color: white;
+  color: #969696;
+  border: none;
+  padding: 2px 4px;
+  font-size: 20px;
+  outline: none;
+}
+.joinBtn {
+  background-color:#004C99;
+  height: 7vh;
+  width: 10vw;
+  border-radius: 10px;
+  border: none;
+  color: white;
+  font-size: 20px;
+  font-family: main;
+  cursor: pointer;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: pre;
+  outline: none;
+}
+
+#arrow {
+  display: none;
+  color: white;
+}
+
+.joinBtn:hover #arrow{
+  display: inline;
+}
+#killBar {
+  position: fixed;
+  background-color: black;
+  width: 25%;
+  height: 10%;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  display: grid;
+  grid-template-columns: 90px auto;
+  grid-template-rows: 0;
+}
+.gunTypeImg {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  position: relative;
+  top: 0;
+}
+.gunTypeImg img {
+  margin-top: 0;
+  height: 100%;
+}
+.gunStats {
+  grid-row-start: 2;
+}
+.name {
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+.killText {
+  position: relative;
+  width: 100%;
+  height: 60px;
+  grid-column-start: 2;
+  display: grid;
+  grid-template-rows: 50% 50%;
+}
+.timer {
+  position: fixed;
+  left: 50%;
+  top: 5%;
+  color: white;
+  font-size: 2vw;
+}
+.chooseLoadout {
+  float: right;
+  background-color: rgba(0, 0, 0, 0.9);
+  width: 20%;
+}
+.primarys {
+  height: 300px;
+  border-bottom: 1px solid #4FA4EA;
+  overflow: auto;
+}
+.weapon {
+  color: white;
+  text-align: center;
+  padding-bottom: 5%;
+  border-bottom: 1px solid black;
+  cursor: pointer;
+}
+.weapon:hover {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.primarys .weaponImg {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5%;
+  width: 50%;
+  display: block;
+}
+.secondaries {
+  height: 300px;
+  overflow: auto;
+}
+.secondaries .weaponImg {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 5%;
+  width: 30%;
+  display: block;
+}
+.tag {
+  text-align: center;
+  color: white;
+}
+.hp {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 90%;
+  background-color: rgba(148, 148, 148, 0.9);
+  height: 6%;
+  width: 60%;
+  border-radius: 5px;
+  margin: 0;
+}
+#health {
+  position: relative;
+  width: 99%;
+  height: 85%;
+  margin: 0 auto;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  border-radius: 10px;
+}
+.selected {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.pstats {
+  float: left;
+  margin-top: 2%;
+  margin-left: 2%;
+  height: 38vh;
+  width: 15vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+}
+.sstats {
+  float: left;
+  margin-top: 25%;
+  margin-left: 2%;
+  height: 38vh;
+  width: 15vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 20px;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+}
+.pstats h4 {
+  text-align: center;
+}
+.sstats h4 {
+  text-align: center;
+  white-space: nowrap;
+}
+.pname::before {
+  content: "NAME: ";
+}
+.pname {
+  text-align: center;
+  margin-bottom: 10%;
+}
+.damage {
+  margin-bottom: 10%;
+}
+.bars {
+  display: flex;
+  flex-flow: row;
+  flex-direction: row;
+}
+.bar {
+  width: 1.5vw;
+  background-color: #4FA4EA;
+  border-radius: 20%;
+  height: 3vh;
+  margin-left: 3%;
+}
+.damageText {
+  margin-left: 20px;
+}
+.damageText::after {
+  content: " / shot";
+}
+.space {
+  margin-left: 20px;
+  white-space: nowrap;
+}
+.fireRate {
+  margin-bottom: 10%;
+}
+.acc {
+  margin-bottom: 10%;
+}
+.lb {
+  float: right;
+  position: relative;
+  min-height: 20vh;
+  min-width: 20vw;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 10px;
+  margin-top: 2%;
+  margin-right: 2%;
+}
+.lb-header {
+  color: white;
+  text-align: center;
+  white-space: nowrap;
+  opacity: 1;
+  z-index: 5;
+}
+.lbItem {
+  color: white;
+  font-size: 1.5vw;
+  text-align: center;
+}
+.lbItem::first-letter {
+  color: #9e9e9e;
+  float: left;
+  margin-left: 10px;
+}
+.gameOver {
+  color: white;
+  background-color: rgb(0, 0, 0);
+  border-radius: 10px;
+  width: 50vw;
+  height: 40vh;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.gameOver h4 {
+  text-align: center;
+  font-size: 3vw;
+}
+.itemsEnd {
+  width: 100%;
+}
+.itemsEnd tr {
+  text-align: center;
+  margin-right: auto;
+  border-bottom: 1px solid red;
+  margin-bottom: auto;
+}
+.killItem {
+  color: black;
+  font-size: 2vw;
+  margin: auto;
+  text-align: center;
+  width: 80%;
+  animation-name: kill;
+  animation-duration: 1s;
+}
+#lbItems {
+  width: 100%;
+}
+#lbItems tr {
+  text-align: center;
+  color: white;
+}
+.bottomBar {
+  position: absolute;
+  bottom: 40px;
+  left: 20;
+  width: 20%;
+  height: 10vh;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: white;
+}
+#weaponName::before {
+  content: "WEAPON: ";
+}
+#ammo::before {
+  content: "AMMO: ";
+}
+.center {
+  position: absolute;
+  left: 50%;
+  top: 70%;
+  transform: translateX(-50%);
+}
+#gameMode {
+  position: fixed;
+  right: 4%;
+  bottom: 4%;
+  font-size: 3vw;
+  color: #1A1F38;
+}
+#backgroundCanvas {
+  z-index: -5;
+}

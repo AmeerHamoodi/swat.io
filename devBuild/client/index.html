@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <script src="https://kit.fontawesome.com/12990abcf1.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="./css/master.css">
+    <meta charset="utf-8">
+    <title></title>
+  </head>
+  <body class="welcome">
+    <canvas id="backgroundCanvas">
+    </canvas>
+    <div class="welcomeContainer">
+      <div class="welcomeScreen">
+        SWAT.<span>io</span>
+        <div class="join">
+          <input type="text" id="name" placeholder="Enter your username">
+          <button type="button" name="button" class="joinBtn" id="join">Join Game  <i class="fas fa-chevron-right" id="arrow"></i></button>
+        </div>
+      </div>
+      <div class="chooseLoadout">
+        <div class="primarys">
+          <h4 class="tag">Primary Weapons</h4>
+          <div class="weapon" id="p0">
+            AK47
+            <img class="weaponImg" src="./img/assets/ak.png">
+          </div>
+          <div class="weapon" id="p1">
+            SIGM400
+            <img class="weaponImg" src="./img/assets/sigm-400.png">
+          </div>
+          <div class="weapon" id="p2">
+            SCAR-L
+            <img class="weaponImg" src="./img/assets/scar.png">
+          </div>
+          <div class="weapon" id="p3">
+            M4A1
+            <img class="weaponImg" src="./img/assets/m4a1.png">
+          </div>
+          <div class="weapon" id="p4">
+            M16
+            <img class="weaponImg" src="./img/assets/m16.png">
+          </div>
+        </div>
+        <div class="secondaries">
+            <h4 class="tag">Secondary Weapons</h4>
+          <div class="weapon" id="s0">
+            P2000
+            <img class="weaponImg" src="./img/assets/p2000.png">
+          </div>
+          <div class="weapon" id="s1">
+            MAC11
+            <img class="weaponImg" src="./img/assets/mac11.png">
+          </div>
+          <div class="weapon" id="s2">
+            MAGNUM
+            <img class="weaponImg" src="./img/assets/magnum.png">
+          </div>
+          <div class="weapon" id="s3">
+            SAWED OFF
+            <img class="weaponImg" src="./img/assets/sawedOff.png">
+          </div>
+        </div>
+      </div>
+      <div class="pstats">
+        <h4>PRIMARY WEAPON STATS</h4>
+        <div class="pname" id="pgunName">
+          NO WEAPON SELECTED
+        </div>
+        <div class="damage" id="dmg">
+          <div class="bars">
+            <span class="space damageText" id="pdmg">0</span>
+          </div>
+        </div>
+        <div class="fireRate">
+          <div class="bars">
+            <span class="space" id="pgunFR">N/A</span>
+          </div>
+        </div>
+        <div class="acc">
+          <div class="bars">
+            <span class="space" id="pgunAcc">N/A%</span>
+          </div>
+        </div>
+        <div class="mass">
+          <div class="bars">
+            <span class="space" id="pgunMass">N/A</span>
+          </div>
+        </div>
+      </div>
+      <div class="sstats">
+        <h4>SECONDARY WEAPON STATS</h4>
+        <div class="pname" id="sgunName">
+          NO WEAPON SELECTED
+        </div>
+        <div class="damage" id="dmg">
+          <div class="bars">
+            <span class="space damageText" id="sdmg">0</span>
+          </div>
+        </div>
+        <div class="fireRate">
+          <div class="bars">
+            <span class="space" id="sgunFR">N/A</span>
+          </div>
+        </div>
+        <div class="acc">
+          <div class="bars">
+            <span class="space" id="sgunAcc">N/A%</span>
+          </div>
+        </div>
+        <div class="mass">
+          <div class="bars">
+            <span class="space" id="sgunMass">N/A</span>
+          </div>
+        </div>
+      </div>
+      <div id="gameMode">
+      </div>
+    </div>
+
+    <div id="game">
+      <div id="killBar" style="display:none">
+        <div class="killText">
+          <div class="name" id="killName">
+
+          </div>
+          <div class="gunStats" id="stats">
+
+          </div>
+        </div>
+        <div class="gunTypeImg" id="gunImg">
+          <img src="./img/bruh.jpg" width="90px" height="100%">
+        </div>
+      </div>
+      <div id="leaderBoard" class="lb">
+        <h4 class="lb-header">LEADERBOARD</h4>
+        <table id="lbItems">
+          <tr>
+            <th> PLACE </th>
+            <th> NAME </th>
+            <th> POINTS </th>
+          </tr>
+        </table>
+      </div>
+      <div class="timer">
+      </div>
+      <div class="gameOver" style="display:none">
+        <h4>GAME OVER</h4>
+        <table class="itemsEnd">
+          <tr>
+            <th> RANK </th>
+            <th> NAME </th>
+            <th> POINTS </th>
+          </tr>
+        </table>
+      </div>
+      <div class="bottomBar">
+        <div class="currentWeapon">
+          <div id="weaponName">
+             AK47
+          </div>
+          <div id="ammo">
+             30/30
+          </div>
+        </div>
+        <div class="switchWeapon">
+          SECONDARY [Q]
+        </div>
+      </div>
+      <div class="center">
+      </div>
+    </div>
+  <script type="text/javascript" src="js/bundle.js?5be55ab4d46e5e3467a1"></script></body>
+</html>

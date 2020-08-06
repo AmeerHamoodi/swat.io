@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="90mm"
+   height="80mm"
+   viewBox="0 0 90 80"
+   version="1.1"
+   id="svg8"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="crim-helm.svg">
+  <defs
+     id="defs2">
+    <inkscape:path-effect
+       effect="spiro"
+       id="path-effect59"
+       is_visible="true" />
+    <inkscape:path-effect
+       effect="bspline"
+       id="path-effect14"
+       is_visible="true"
+       weight="33.333333"
+       steps="2"
+       helper_size="0"
+       apply_no_weight="true"
+       apply_with_weight="true"
+       only_selected="false" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.49497475"
+     inkscape:cx="81.875129"
+     inkscape:cy="364.30202"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="1440"
+     inkscape:window-height="837"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-217)">
+    <g
+       id="g53" />
+    <g
+       id="g70"
+       transform="matrix(2.3017721,0,0,2.7143665,-50.460867,-454.7641)">
+      <rect
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.24173997;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect16"
+         width="1.1339285"
+         height="25.538513"
+         x="22.136044"
+         y="251.41896"
+         ry="0.15323107" />
+      <ellipse
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.07845122;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="path10"
+         cx="30.42708"
+         cy="251.45389"
+         rx="8.5044632"
+         ry="3.9687481" />
+      <rect
+         transform="scale(-1,1)"
+         ry="0.15323107"
+         y="251.41849"
+         x="-60.809498"
+         height="25.538513"
+         width="1.1339285"
+         id="rect16-6"
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.24173997;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <ellipse
+         transform="scale(-1,1)"
+         ry="3.9687481"
+         rx="8.5044632"
+         cy="251.45341"
+         cx="-52.518463"
+         id="path10-2"
+         style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.07845122;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+      <path
+         transform="matrix(1.7352145,0,0,1,-29.957318,1.0356694)"
+         inkscape:original-d="m 38.887717,250.96282 c 1.626153,-0.0671 3.252041,-0.1339 4.877668,-0.20045 1.625624,-0.0666 -0.08883,0.267 -0.133636,0.4009"
+         inkscape:path-effect="#path-effect59"
+         inkscape:connector-curvature="0"
+         id="path57"
+         d="m 38.887717,250.96282 c -0.246796,-0.74323 -0.124416,-1.59938 0.320721,-2.24371 0.445136,-0.64433 1.202594,-1.06173 1.985072,-1.09389 0.782477,-0.0322 1.57163,0.32169 2.068134,0.92732 0.496504,0.60563 0.68872,1.44885 0.503741,2.20983 -0.03331,0.13703 -0.07806,0.27129 -0.133636,0.4009"
+         style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    </g>
+  </g>
+</svg>
