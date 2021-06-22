@@ -70,7 +70,7 @@ function watchServer() {
 
 function nm() {
   nodemon({
-    script: './devBuild/server.js'
+    script: './devBuild/matchmaker.js'
     , ext: 'js html'
     , env: { 'NODE_ENV': 'development' }
   })
